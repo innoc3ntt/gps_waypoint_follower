@@ -134,7 +134,6 @@ namespace gps_waypoint_follower
     GPSWaypointFollower::convertGPS(geographic_msgs::msg::GeoPose gps_pose)
     {
         auto req = std::make_shared<FromLL::Request>();
-        auto res = std::make_shared<FromLL::Response>();
 
         geometry_msgs::msg::PoseStamped curr_pose_map_frame;
 
@@ -143,7 +142,11 @@ namespace gps_waypoint_follower
         req->ll_point.altitude = gps_pose.position.altitude;
         from_ll_to_map_client_->wait_for_service((std::chrono::seconds(1)));
 
-        // res = from_ll_to_map_client_->async_send_request(req);
+        if (from_ll_to_map_client_->service_is_ready())
+        {
+            RCLCPP_INFO(get_logger(), "sending service request");
+            auto res = from_ll_to_map_client_->async_send_request(req);
+        }
         // if (rclcpp::spin_until_future_complete(test, res))
         // {
 
