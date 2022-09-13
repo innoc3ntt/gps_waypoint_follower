@@ -14,9 +14,13 @@ find_package(ament_cmake REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(robot_localization REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(geographic_msgs REQUIRED)
 find_package(nav2_util REQUIRED)
+find_package(nav2_msgs REQUIRED)
+find_package(nav2_core REQUIRED)
+find_package(pluginlib REQUIRED)
 
 include_directories(
   include
@@ -36,11 +40,15 @@ add_library(${library_name} SHARED
 
 set(dependencies 
   rclcpp 
+  rclcpp_action
   example_interfaces 
   robot_localization
   geographic_msgs
   tf2_geometry_msgs
   nav2_util
+  nav2_msgs
+  nav2_core
+  pluginlib
 )
 
 target_link_libraries(${executable_name} ${library_name})
