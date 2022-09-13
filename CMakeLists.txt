@@ -22,19 +22,19 @@ include_directories(
   include
   )
 
+link_libraries(stdc++fs)
+
 set(executable_name client_main)
 
 add_executable(${executable_name} src/main.cpp)
 
 set(library_name ${executable_name}_core)
 
-#add_library(${library_name} SHARED 
-#  src/gps_waypoint_follower.cpp
-#)
+add_library(${library_name} SHARED 
+  src/gps_waypoint_follower.cpp
+)
 
-target_link_libraries(${executable_name})
-
-ament_target_dependencies(client_main
+set(dependencies 
   rclcpp 
   example_interfaces 
   robot_localization
@@ -42,14 +42,19 @@ ament_target_dependencies(client_main
   tf2_geometry_msgs
   nav2_util
 )
-# DIRECTORY launch params
+
+target_link_libraries(${executable_name} ${library_name})
+
+ament_target_dependencies(${executable_name} ${dependencies} )
+ament_target_dependencies(${library_name} ${dependencies} )
+
 
 install(
   DIRECTORY launch params 
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(TARGETS client_main
+install(TARGETS ${executable_name}
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -67,5 +72,10 @@ if(BUILD_TESTING)
 endif()
 
 
+rclcpp_components_register_nodes(${library_name} 
+  gps_waypoint_follower::GPSWaypointFollower)
+
+ament_export_libraries(${library_name})
 ament_export_include_directories(include)
+ament_export_dependencies(${dependencies})
 ament_package()

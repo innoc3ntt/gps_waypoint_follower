@@ -17,20 +17,18 @@
 #include <memory>
 
 #include "example_interfaces/srv/add_two_ints.hpp"
-#include "geographic_msgs/msg/geo_pose.hpp"
 #include "gps_waypoint_follower.hpp"
-#include "nav2_util/service_client.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "robot_localization/srv/from_ll.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 using AddTwoInts = example_interfaces::srv::AddTwoInts;
 using FromLL = robot_localization::srv::FromLL;
+
 auto node = rclcpp::Node::make_shared("minimal_client");
 auto from_ll_to_map_client_ = std::make_unique<
     nav2_util::ServiceClient<FromLL>>(
     "/fromLL",
     node);
+auto client = node -> create_client<AddTwoInts>("add_two_ints");
 
 // std::vector<geographic_msgs::msg::GeoPose> loadGPSWaypointsFromYAML()
 geometry_msgs::msg::PoseStamped convertGPS(geographic_msgs::msg::GeoPose gps_pose)
@@ -61,53 +59,24 @@ geometry_msgs::msg::PoseStamped convertGPS(geographic_msgs::msg::GeoPose gps_pos
   return curr_pose_map_frame;
 }
 
-int main(int argc, char *argv[])
+int twoInts()
 {
-  rclcpp::init(argc, argv);
-
-  // auto node = std::make_shared<gps_waypoint_folower::GPSWaypointFollower>;
-  auto client = node->create_client<AddTwoInts>("add_two_ints");
-  auto robo = node->create_client<FromLL>("robo");
-
-  // while (!robo->wait_for_service(std::chrono::seconds(1)))
-  // {
-  //   if (!rclcpp::ok())
-  //   {
-  //     RCLCPP_ERROR(node->get_logger(), "client interrupted while waiting for service to appear.");
-  //     return 1;
-  //   }
-  //   RCLCPP_INFO(node->get_logger(), "waiting for service to appear...");
-  // }
-
-  // while (!client->wait_for_service(std::chrono::seconds(1)))
-  // {
-  //   if (!rclcpp::ok())
-  //   {
-  //     RCLCPP_ERROR(node->get_logger(), "client interrupted while waiting for service to appear.");
-  //     return 1;
-  //   }
-  //   RCLCPP_INFO(node->get_logger(), "waiting for service to appear...");
-  // }
-  geographic_msgs::msg::GeoPose input;
-
-  geometry_msgs::msg::PoseStamped output = convertGPS(input);
-  // robo->wait_for_service(std::chrono::seconds(1));
-
-  // auto res_future = robo->async_send_request(req);
-  // if (rclcpp::spin_until_future_complete(node, res_future) != rclcpp::FutureReturnCode::SUCCESS)
-  // {
-  //   RCLCPP_ERROR(node->get_logger(), "robo failed you dickhead");
-  //   return 1;
-  // }
-  // auto res = res_future.get();
-  // RCLCPP_INFO(node->get_logger(), "result is %f", res->map_point.x);
-
-  // if (!robo->invoke(request, response))
-
   auto request = std::make_shared<AddTwoInts::Request>();
   request->a = 41;
   request->b = 1;
+
+  while (!client->wait_for_service(std::chrono::seconds(1)))
+  {
+    if (!rclcpp::ok())
+    {
+      RCLCPP_ERROR(node->get_logger(), "client interrupted while waiting for service to appear.");
+      return 1;
+    }
+    RCLCPP_INFO(node->get_logger(), "waiting for service to appear...");
+  }
+
   auto result_future = client->async_send_request(request);
+
   if (rclcpp::spin_until_future_complete(node, result_future) !=
       rclcpp::FutureReturnCode::SUCCESS)
   {
@@ -118,6 +87,19 @@ int main(int argc, char *argv[])
   RCLCPP_INFO(
       node->get_logger(), "result of %" PRId64 " + %" PRId64 " = %" PRId64,
       request->a, request->b, result->sum);
+
+  return 0;
+}
+
+int main(int argc, char *argv[])
+{
+  rclcpp::init(argc, argv);
+
+  auto test = std::make_shared<gps_waypoint_follower::GPSWaypointFollower>();
+
+  rclcpp::spin(test->get_node_base_interface());
+  geographic_msgs::msg::GeoPose input;
+  geometry_msgs::msg::PoseStamped output = convertGPS(input);
   rclcpp::shutdown();
   return 0;
 }

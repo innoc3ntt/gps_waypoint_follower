@@ -8,11 +8,13 @@
 // #include "rclcpp/rclcpp.hpp"
 // #include "robot_localization/srv/from_ll.hpp"
 // #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "gps_waypoint_follower.hpp"
 
+#include "gps_waypoint_follower.hpp"
 namespace gps_waypoint_follower
 {
-    GPSWaypointFollower::GPSWaypointFollower(const rclcpp::NodeOptions &options)
+    GPSWaypointFollower::GPSWaypointFollower() : nav2_util::LifecycleNode("gps_waypoint_follower", "", false)
+
+    // , waypoint_task_executor_loader_("nav2_waypoint_follower", "nav2_core::WaypointTaskExecutor")
     {
 
         auto node = shared_from_this();
@@ -36,14 +38,14 @@ namespace gps_waypoint_follower
         from_ll_to_map_client_->wait_for_service((std::chrono::seconds(1)));
         if (!from_ll_to_map_client_->invoke(req, res))
         {
-            RCLCPP_ERROR(node->get_logger(), "ll failed");
+            RCLCPP_ERROR(this->get_logger(), "ll failed");
         }
         else
         {
-            RCLCPP_INFO(node->get_logger(), "Successssss %f", res->map_point.x);
+            RCLCPP_INFO(this->get_logger(), "Successssss %f", res->map_point.x);
 
             curr_pose_map_frame.header.frame_id = "map";
-            curr_pose_map_frame.header.stamp = node->now();
+            curr_pose_map_frame.header.stamp = this->now();
             curr_pose_map_frame.pose.position = res->map_point;
             curr_pose_map_frame.pose.orientation = gps_pose.orientation;
         }
