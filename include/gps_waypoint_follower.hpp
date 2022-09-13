@@ -69,36 +69,38 @@ namespace gps_waypoint_follower
    * @return SUCCESS or FAILURE
    */
         nav2_util::CallbackReturn on_shutdown(const rclcpp_lifecycle::State &state) override;
-        // geometry_msgs::msg::PoseStamped convertGPS(geographic_msgs::msg::GeoPose gps_pose);
-        // nav2_util::CallbackReturn on_configure(const rclcpp_lifecycle::State &state) override;
-        // std::unique_ptr<nav2_util::ServiceClient<FromLL>>
-        //     from_ll_to_map_client_;
-        // std::unique_ptr<ActionServerGPS> gps_action_server_;
 
-        // ActionClient::SharedPtr nav_to_pose_client_;
-        // rclcpp::CallbackGroup::SharedPtr callback_group_;
-        // rclcpp::executors::SingleThreadedExecutor callback_group_executor_;
+        geometry_msgs::msg::PoseStamped convertGPS(geographic_msgs::msg::GeoPose gps_pose);
 
-        // void followGPSWaypointsCallback();
-        // void resultCallback(const rclcpp_action::ClientGoalHandle<ClientT>::WrappedResult &result);
-        // void goalResponseCallback(const rclcpp_action::ClientGoalHandle<ClientT>::SharedPtr &goal);
+        std::unique_ptr<nav2_util::ServiceClient<FromLL>>
+            from_ll_to_map_client_;
+        std::unique_ptr<ActionServerGPS> gps_action_server_;
 
-        // std::shared_future<rclcpp_action::ClientGoalHandle<ClientT>::SharedPtr> future_goal_handle_;
+        ActionClient::SharedPtr nav_to_pose_client_;
+        rclcpp::CallbackGroup::SharedPtr callback_group_;
+        rclcpp::executors::SingleThreadedExecutor callback_group_executor_;
 
-        // ActionStatus current_goal_status_;
-        // std::vector<int> failed_ids_;
-        // int loop_rate_;
-        // bool stop_on_failure_;
-        // std::string global_frame_id_{"map"};
-        // std::vector<geometry_msgs::msg::PoseStamped>
-        // convertGPSPosesToMapPoses(const std::vector<geographic_msgs::msg::GeoPose> &gps_poses);
+        void followGPSWaypointsCallback();
 
-        // pluginlib::ClassLoader<nav2_core::WaypointTaskExecutor>
-        //     waypoint_task_executor_loader_;
-        // pluginlib::UniquePtr<nav2_core::WaypointTaskExecutor>
-        //     waypoint_task_executor_;
-        // std::string waypoint_task_executor_id_;
-        // std::string waypoint_task_executor_type_;
+        void resultCallback(const rclcpp_action::ClientGoalHandle<ClientT>::WrappedResult &result);
+        void goalResponseCallback(const rclcpp_action::ClientGoalHandle<ClientT>::SharedPtr &goal);
+
+        std::shared_future<rclcpp_action::ClientGoalHandle<ClientT>::SharedPtr> future_goal_handle_;
+
+        ActionStatus current_goal_status_;
+        std::vector<int> failed_ids_;
+        int loop_rate_;
+        bool stop_on_failure_;
+        std::string global_frame_id_{"map"};
+        std::vector<geometry_msgs::msg::PoseStamped>
+        convertGPSPosesToMapPoses(const std::vector<geographic_msgs::msg::GeoPose> &gps_poses);
+
+        pluginlib::ClassLoader<nav2_core::WaypointTaskExecutor>
+            waypoint_task_executor_loader_;
+        pluginlib::UniquePtr<nav2_core::WaypointTaskExecutor>
+            waypoint_task_executor_;
+        std::string waypoint_task_executor_id_;
+        std::string waypoint_task_executor_type_;
     };
 } // namespace gps_waypoint_foolower
 

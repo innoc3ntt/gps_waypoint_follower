@@ -12,9 +12,23 @@
 #include "gps_waypoint_follower.hpp"
 namespace gps_waypoint_follower
 {
-    auto node = rclcpp::Node::make_shared("gps_waypoint_follower");
-    GPSWaypointFollower::GPSWaypointFollower() : nav2_util::LifecycleNode("gps_waypoint_follower", "", false)
+    // auto node = rclcpp::Node::make_shared("gps_waypoint_follower");
+    GPSWaypointFollower::GPSWaypointFollower() : nav2_util::LifecycleNode("gps_waypoint_follower", "", false),
+                                                 waypoint_task_executor_loader_("nav2_waypoint_follower",
+                                                                                "nav2_core::WaypointTaskExecutor")
     {
+        RCLCPP_INFO(get_logger(), "Creating");
+
+        declare_parameter("stop_on_failure", true);
+        declare_parameter("loop_rate", 20);
+        declare_parameter("global_frame_id", global_frame_id_);
+
+        nav2_util::declare_parameter_if_not_declared(
+            this, std::string("waypoint_task_executor_plugin"),
+            rclcpp::ParameterValue(std::string("wait_at_waypoint")));
+        nav2_util::declare_parameter_if_not_declared(
+            this, std::string("wait_at_waypoint.plugin"),
+            rclcpp::ParameterValue(std::string("nav2_waypoint_follower::WaitAtWaypoint")));
     }
 
     GPSWaypointFollower::~GPSWaypointFollower()
