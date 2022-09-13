@@ -242,23 +242,25 @@ namespace gps_waypoint_follower
             }
 
             // Check if asked to process another action
-            // if (gps_action_server_->is_preempt_requested())
-            // {
-            //     RCLCPP_INFO(get_logger(), "Preempting the goal pose.");
-            //     goal = gps_action_server_->accept_pending_goal();
-            //     poses = getLatestGoalPoses<T>(gps_action_server_);
-            //     if (poses.empty())
-            //     {
-            //         RCLCPP_ERROR(
-            //             get_logger(),
-            //             "Empty vector of Waypoints passed to waypoint following logic. "
-            //             "Nothing to execute, returning with failure!");
-            //         gps_action_server_->terminate_current(result);
-            //         return;
-            //     }
-            //     goal_index = 0;
-            //     new_goal = true;
-            // }
+            if (gps_action_server_->is_preempt_requested())
+            {
+                RCLCPP_INFO(get_logger(), "Preempting the goal pose.");
+                goal = gps_action_server_->accept_pending_goal();
+                poses = convertGPSPosesToMapPoses(
+                    gps_action_server_->get_current_goal()->gps_poses);
+
+                if (poses.empty())
+                {
+                    RCLCPP_ERROR(
+                        get_logger(),
+                        "Empty vector of Waypoints passed to waypoint following logic. "
+                        "Nothing to execute, returning with failure!");
+                    gps_action_server_->terminate_current(result);
+                    return;
+                }
+                goal_index = 0;
+                new_goal = true;
+            }
 
             // Check if we need to send a new goal
             if (new_goal)
@@ -405,3 +407,7 @@ namespace gps_waypoint_follower
         }
     }
 }
+
+// #include "rclcpp_components/register_node_macro.hpp"
+
+// RCLCPP_COMPONENTS_REGISTER_NODE(gps_waypoint_follower::GPSWaypointFollower)
