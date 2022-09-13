@@ -21,6 +21,7 @@ find_package(nav2_util REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(nav2_waypoint_follower REQUIRED)
 find_package(nav2_core REQUIRED)
+find_package(gps_interfaces REQUIRED)
 find_package(pluginlib REQUIRED)
 
 include_directories(
@@ -49,8 +50,9 @@ set(dependencies
   nav2_util
   nav2_msgs
   nav2_core      
-  pluginlib
   nav2_waypoint_follower
+  pluginlib
+  gps_interfaces
 )
 
 

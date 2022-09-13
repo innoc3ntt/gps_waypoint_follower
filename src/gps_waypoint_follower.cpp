@@ -68,6 +68,13 @@ namespace gps_waypoint_follower
         //     get_node_logging_interface(),
         //     get_node_waitables_interface(),
         //     "fromLL", std::bind(&GPSWaypointFollower::on_activate, this));
+        gps_action_server_ = std::make_unique<ActionServerGPS>(
+            get_node_base_interface(),
+            get_node_clock_interface(),
+            get_node_logging_interface(),
+            get_node_waitables_interface(),
+            "follow_gps_waypoints",
+            std::bind(&GPSWaypointFollower::followGPSWaypointsCallback, this));
 
         return nav2_util::CallbackReturn::SUCCESS;
     }
