@@ -60,6 +60,12 @@ namespace gps_waypoint_follower
             get_node_waitables_interface(),
             "navigate_to_pose", callback_group_);
 
+        // std::shared_ptr<rclcpp::Node> test = rclcpp::Node::make_shared("diagnostics_node");
+        // from_ll_to_map_client_ = test->create_client<FromLL>("testing");
+
+        from_ll_to_map_client_ = create_client<FromLL>("test");
+
+        // from_ll_to_map_client
         // // TODO: creating service failed, cannot pass lifecycle node to serviceclient
         // // from_ll_to_map_client_ = std::make_unique<nav2_ut
         // from_ll_to_map_client_ = rclcpp_action::create_client<FromLL>(
@@ -68,6 +74,12 @@ namespace gps_waypoint_follower
         //     get_node_logging_interface(),
         //     get_node_waitables_interface(),
         //     "fromLL", std::bind(&GPSWaypointFollower::on_activate, this));
+
+        // from_ll_to_map_client_ = std::make_unique<
+        //     nav2_util::ServiceClient<robot_localization::srv::FromLL>>(
+        //     "/fromLL",
+        //     &node);
+
         gps_action_server_ = std::make_unique<ActionServerGPS>(
             get_node_base_interface(),
             get_node_clock_interface(),
@@ -131,19 +143,29 @@ namespace gps_waypoint_follower
         req->ll_point.altitude = gps_pose.position.altitude;
         from_ll_to_map_client_->wait_for_service((std::chrono::seconds(1)));
 
-        if (!from_ll_to_map_client_->invoke(req, res))
-        {
-            RCLCPP_ERROR(this->get_logger(), "ll failed");
-        }
-        else
-        {
-            RCLCPP_INFO(this->get_logger(), "Successssss %f", res->map_point.x);
+        // res = from_ll_to_map_client_->async_send_request(req);
+        // if (rclcpp::spin_until_future_complete(test, res))
+        // {
 
-            curr_pose_map_frame.header.frame_id = "map";
-            curr_pose_map_frame.header.stamp = this->now();
-            curr_pose_map_frame.pose.position = res->map_point;
-            curr_pose_map_frame.pose.orientation = gps_pose.orientation;
-        }
+        //     curr_pose_map_frame.header.frame_id = "map";
+        //     curr_pose_map_frame.header.stamp = this->now();
+        //     curr_pose_map_frame.pose.position = res->map_point;
+        //     curr_pose_map_frame.pose.orientation = gps_pose.orientation;
+        // }
+
+        // if (!from_ll_to_map_client_->invoke(req, res))
+        // {
+        //     RCLCPP_ERROR(this->get_logger(), "ll failed");
+        // }
+        // else
+        // {
+        //     RCLCPP_INFO(this->get_logger(), "Successssss %f", res->map_point.x);
+
+        //     curr_pose_map_frame.header.frame_id = "map";
+        //     curr_pose_map_frame.header.stamp = this->now();
+        //     curr_pose_map_frame.pose.position = res->map_point;
+        //     curr_pose_map_frame.pose.orientation = gps_pose.orientation;
+        // }
 
         return curr_pose_map_frame;
     }

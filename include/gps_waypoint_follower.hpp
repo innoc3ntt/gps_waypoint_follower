@@ -72,8 +72,10 @@ namespace gps_waypoint_follower
 
         geometry_msgs::msg::PoseStamped convertGPS(geographic_msgs::msg::GeoPose gps_pose);
 
-        std::unique_ptr<nav2_util::ServiceClient<FromLL>>
-            from_ll_to_map_client_;
+        // std::shared_ptr<nav2_util::ServiceClient<FromLL>> from_ll_to_map_client_;
+
+        rclcpp::Client<FromLL>::SharedPtr from_ll_to_map_client_;
+
         std::unique_ptr<ActionServerGPS> gps_action_server_;
 
         ActionClient::SharedPtr nav_to_pose_client_;
