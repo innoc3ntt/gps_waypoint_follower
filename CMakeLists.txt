@@ -19,6 +19,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(geographic_msgs REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_msgs REQUIRED)
+find_package(nav2_waypoint_follower REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(pluginlib REQUIRED)
 
@@ -28,7 +29,7 @@ include_directories(
 
 link_libraries(stdc++fs)
 
-set(executable_name client_main)
+set(executable_name gps_waypoint_follower)
 
 add_executable(${executable_name} src/main.cpp)
 
@@ -47,13 +48,18 @@ set(dependencies
   tf2_geometry_msgs
   nav2_util
   nav2_msgs
-  nav2_core
+  nav2_core      
   pluginlib
+  nav2_waypoint_follower
+)
+
+
+ament_target_dependencies(${executable_name} 
+  ${dependencies} 
 )
 
 target_link_libraries(${executable_name} ${library_name})
 
-ament_target_dependencies(${executable_name} ${dependencies} )
 ament_target_dependencies(${library_name} ${dependencies} )
 
 
@@ -61,6 +67,13 @@ install(
   DIRECTORY launch params 
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(TARGETS ${library_name}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
 
 install(TARGETS ${executable_name}
   DESTINATION lib/${PROJECT_NAME}
@@ -74,16 +87,20 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(TARGETS ${executable_name}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-
 rclcpp_components_register_nodes(${library_name} 
   gps_waypoint_follower::GPSWaypointFollower)
 
-ament_export_libraries(${library_name})
 ament_export_include_directories(include)
+ament_export_libraries(${library_name})
 ament_export_dependencies(${dependencies})
+
 ament_package()

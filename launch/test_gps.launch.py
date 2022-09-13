@@ -35,7 +35,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     share_dir = get_package_share_directory("gps_waypoint_follower")
     parameter_file = LaunchConfiguration("params_file")
-    node_name = "minimal_client"
+    node_name = "gps_waypoint_follower"
 
     parameters_file_dir = os.path.join(share_dir, "params")
     parameters_file_path = os.path.join(
@@ -50,7 +50,7 @@ def generate_launch_description():
 
     driver_node = LifecycleNode(
         package="gps_waypoint_follower",
-        executable="client_main",
+        executable="gps_waypoint_follower",
         name=node_name,
         namespace="",
         output="screen",
