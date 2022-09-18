@@ -25,6 +25,8 @@ from launch_ros.event_handlers import OnStateTransition
 from launch.actions import LogInfo
 from launch.events import matches_action
 from launch.event_handlers.on_shutdown import OnShutdown
+from launch_ros.substitutions import FindPackageShare
+
 
 import lifecycle_msgs.msg
 import os
@@ -33,48 +35,49 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    share_dir = get_package_share_directory("gps_waypoint_follower")
-    parameter_file = LaunchConfiguration("params_file")
-    node_name = "gps_waypoint_follower"
+    # * Launch configurations
+    use_sim_time = LaunchConfiguration("use_sim_time")
 
-    parameters_file_dir = os.path.join(share_dir, "params")
-    parameters_file_path = os.path.join(
-        parameters_file_dir, "dual_ekf_navsat_localization.yaml"
+    # * Declares
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        name="use_sim_time",
+        default_value="True",
+        description="Use simulation (Gazebo) clock if true",
     )
 
-    params_declare = DeclareLaunchArgument(
-        "params_file",
-        default_value=os.path.join(share_dir, "params", "demo_gps_waypoints.yaml"),
-        description="FPath to the ROS2 parameters file to use.",
+    declare_autostart_cmd = DeclareLaunchArgument(
+        "autostart",
+        default_value="true",
+        description="Automatically startup the nav2 stack",
     )
 
+    # * Nodes
     driver_node = LifecycleNode(
         package="gps_waypoint_follower",
         executable="gps_waypoint_follower",
-        name=node_name,
+        name="gps_waypoint_follower",
         namespace="",
         output="screen",
-        parameters=[parameter_file],
     )
-
-    navsat_node = Node(
-        package="robot_localization",
-        executable="navsat_transform_node",
-        name="navsat_transform_node",
+    gps_lifecycle = Node(
+        package="nav2_lifecycle_manager",
+        executable="lifecycle_manager",
+        name="lifecycle_manager_gps_waypoint_follower",
         output="screen",
-        parameters=[parameters_file_path],
-        remappings=[
-            ("imu/data", "imu/data"),
-            ("gps/fix", "gps/fix"),
-            ("gps/filtered", "gps/filtered"),
-            ("odometry/gps", "odometry/gps"),
-            ("odometry/filtered", "odometry/global"),
+        parameters=[
+            {"use_sim_time": use_sim_time},
+            {"autostart": True},
+            {"node_names": ["gps_waypoint_follower"]},
         ],
     )
 
-    ld = LaunchDescription()
-    ld.add_action(params_declare)
-    ld.add_action(navsat_node)
-    ld.add_action(driver_node)
+    # * Create launch description
 
+    ld = LaunchDescription()
+
+    ld.add_action(declare_autostart_cmd)
+    ld.add_action(declare_use_sim_time_cmd)
+
+    ld.add_action(driver_node)
+    ld.add_action(gps_lifecycle)
     return ld

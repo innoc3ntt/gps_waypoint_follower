@@ -61,9 +61,9 @@ namespace gps_waypoint_follower
             "navigate_to_pose", callback_group_);
 
         // std::shared_ptr<rclcpp::Node> test = rclcpp::Node::make_shared("diagnostics_node");
-        // from_ll_to_map_client_ = test->create_client<FromLL>("testing");
-
-        from_ll_to_map_client_ = create_client<FromLL>("test");
+        from_ll_to_map_client_ = node->create_client<FromLL>("fromLL");
+        // auto test_node = rclcpp::Node::make_shared("test_node");
+        // nav2_util::ServiceClient<FromLL> from_ll_to_map_client_("fromLL", test_node);
 
         // from_ll_to_map_client
         // // TODO: creating service failed, cannot pass lifecycle node to serviceclient
@@ -134,26 +134,44 @@ namespace gps_waypoint_follower
     GPSWaypointFollower::convertGPS(geographic_msgs::msg::GeoPose gps_pose)
     {
         auto req = std::make_shared<FromLL::Request>();
+        // auto res = std::make_shared<FromLL::Response>();
 
         geometry_msgs::msg::PoseStamped curr_pose_map_frame;
 
         req->ll_point.latitude = gps_pose.position.latitude;
         req->ll_point.longitude = gps_pose.position.longitude;
         req->ll_point.altitude = gps_pose.position.altitude;
+
         from_ll_to_map_client_->wait_for_service((std::chrono::seconds(1)));
 
+        // auto node = shared_from_this();
+        // res = from_ll_to_map_client_.invoke(req);
+        auto res = from_ll_to_map_client_->async_send_request(req);
+        auto result = res.get();
+
+        // auto node = shared_from_this();
+        // rclcpp::spin_until_future_complete(node, res);
+
+        RCLCPP_INFO(get_logger(), "sending requiest res %f", res.get()->map_point.x);
+        // rclcpp::spin_until_future_complete(node, res);
         if (from_ll_to_map_client_->service_is_ready())
         {
-            RCLCPP_INFO(get_logger(), "sending service request");
-            auto res = from_ll_to_map_client_->async_send_request(req);
+            //     RCLCPP_INFO(get_logger(), "sending service request");
+            //     auto res = from_ll_to_map_client_->async_send_request(req);
+            // }
+            // // if (rclcpp::spin_until_future_complete(test, res))
+            // {
+            RCLCPP_INFO(get_logger(), "service is ready");
+            RCLCPP_INFO(get_logger(), "map point y %f", res.get()->map_point.y);
         }
-        // if (rclcpp::spin_until_future_complete(test, res))
-        // {
-
-        //     curr_pose_map_frame.header.frame_id = "map";
-        //     curr_pose_map_frame.header.stamp = this->now();
-        //     curr_pose_map_frame.pose.position = res->map_point;
-        //     curr_pose_map_frame.pose.orientation = gps_pose.orientation;
+        else
+        {
+            RCLCPP_INFO(get_logger(), "service not ready ficededadsa");
+        }
+        curr_pose_map_frame.header.frame_id = "map";
+        curr_pose_map_frame.header.stamp = this->now();
+        curr_pose_map_frame.pose.position = res.get()->map_point;
+        curr_pose_map_frame.pose.orientation = gps_pose.orientation;
         // }
 
         // if (!from_ll_to_map_client_->invoke(req, res))
@@ -170,6 +188,8 @@ namespace gps_waypoint_follower
         //     curr_pose_map_frame.pose.orientation = gps_pose.orientation;
         // }
 
+        RCLCPP_INFO(get_logger(), "curr pose z%f", curr_pose_map_frame.pose.position.z);
+
         return curr_pose_map_frame;
     }
 
@@ -178,12 +198,17 @@ namespace gps_waypoint_follower
         const std::vector<geographic_msgs::msg::GeoPose> &gps_poses)
     {
         RCLCPP_INFO(get_logger(), "Converting GPS waypoints to %s Frame..",
-                    "map");
+                    global_frame_id_.c_str());
 
         std::vector<geometry_msgs::msg::PoseStamped> poses_in_map_frame_vector;
         int waypoint_index = 0;
         for (auto &&curr_geopose : gps_poses)
         {
+            RCLCPP_INFO(get_logger(), "Converting GPS waypoints %d [%f,%f] ..",
+                        waypoint_index,
+                        curr_geopose.position.latitude,
+                        curr_geopose.position.longitude);
+
             geometry_msgs::msg::PoseStamped curr_pose_map_frame;
             curr_pose_map_frame = GPSWaypointFollower::convertGPS(curr_geopose);
             poses_in_map_frame_vector.push_back(curr_pose_map_frame);
@@ -209,10 +234,9 @@ namespace gps_waypoint_follower
             return;
         }
 
-        // followWaypointsHandler<std::unique_ptr<ActionServerGPS>,
-        //                        ActionTGPS::Feedback::SharedPtr,
-        //                        ActionTGPS::Result::SharedPtr>(gps_action_server_,
-        //                                                       feedback, result);
+        RCLCPP_INFO(
+            get_logger(), "Received follow waypoint request with %i waypoints.",
+            static_cast<int>(poses.size()));
 
         if (poses.empty())
         {
