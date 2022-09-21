@@ -1,33 +1,23 @@
 <?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>gps_waypoint_follower</name>
-  <version>0.11.2</version>
-  <description>Examples of minimal service clients</description>
-  <maintainer email="mabel@openrobotics.org">Mabel Zhang</maintainer>
-  <maintainer email="sloretz@openrobotics.org">Shane Loretz</maintainer>
-  <license>Apache License 2.0</license>
-  <author>Mikael Arguedas</author>
-  <author>Morgan Quigley</author>
-  <author email="jacob@openrobotics.org">Jacob Perron</author>
+  <version>0.0.1</version>
+  <description>A GPS waypoint follower for nav2</description>
+  <maintainer email="timothy.tan.93@gmail.com">Timothy Tan</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>example_interfaces</depend>
-  <depend>robot_localization</depend>
-  <depend>geographic_msgs</depend>
+  <depend>nav2_common</depend>
   <depend>nav2_util</depend>
   <depend>nav2_msgs</depend>
+  <depend>geographic_msgs</depend>
   <depend>nav2_core</depend>
+  <depend>robot_localization</depend>
   <depend>tf2_ros</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
-
-  
-  <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>joint_state_publisher</exec_depend>
-  <exec_depend>rviz</exec_depend>
-  <exec_depend>xacro</exec_depend>
 
   <exec_depend>ros2launch</exec_depend>
 

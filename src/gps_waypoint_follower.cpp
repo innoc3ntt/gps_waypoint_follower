@@ -1,24 +1,22 @@
 
-#include <chrono>
-#include <cinttypes>
-#include <memory>
-
 #include "gps_waypoint_follower/gps_waypoint_follower.hpp"
 namespace gps_waypoint_follower
 {
+
     GPSWaypointFollower::GPSWaypointFollower() : nav2_util::LifecycleNode("gps_waypoint_follower", "", false),
                                                  waypoint_task_executor_loader_("nav2_waypoint_follower",
                                                                                 "nav2_core::WaypointTaskExecutor")
     {
         RCLCPP_INFO(get_logger(), "Creating");
 
-        declare_parameter("stop_on_failure", true);
-        declare_parameter("loop_rate", 20);
-        declare_parameter("global_frame_id", global_frame_id_);
+        this->declare_parameter("stop_on_failure", true);
+        this->declare_parameter("loop_rate", 20);
+        this->declare_parameter("global_frame_id", global_frame_id_);
 
         nav2_util::declare_parameter_if_not_declared(
             this, std::string("waypoint_task_executor_plugin"),
             rclcpp::ParameterValue(std::string("wait_at_waypoint")));
+
         nav2_util::declare_parameter_if_not_declared(
             this, std::string("wait_at_waypoint.plugin"),
             rclcpp::ParameterValue(std::string("nav2_waypoint_follower::WaitAtWaypoint")));
@@ -156,17 +154,6 @@ namespace gps_waypoint_follower
         curr_pose_map_frame.header.stamp = this->now();
         curr_pose_map_frame.pose.position = res.get()->map_point;
         curr_pose_map_frame.pose.orientation = gps_pose.orientation;
-        // }
-
-        // if (!from_ll_to_map_client_->invoke(req, res))
-        // {
-        //     RCLCPP_ERROR(this->get_logger(), "ll failed");
-        // }
-        // else
-        // {
-        //     RCLCPP_INFO(this->get_logger(), "Successssss %f", res->map_point.x);
-
-        // }
 
         RCLCPP_INFO(get_logger(), "curr pose z%f", curr_pose_map_frame.pose.position.z);
 
