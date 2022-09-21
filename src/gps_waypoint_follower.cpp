@@ -3,7 +3,7 @@
 #include <cinttypes>
 #include <memory>
 
-#include "gps_waypoint_follower.hpp"
+#include "gps_waypoint_follower/gps_waypoint_follower.hpp"
 namespace gps_waypoint_follower
 {
     GPSWaypointFollower::GPSWaypointFollower() : nav2_util::LifecycleNode("gps_waypoint_follower", "", false),

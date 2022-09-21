@@ -16,9 +16,8 @@
 #include <cinttypes>
 #include <memory>
 
-#include "gps_waypoint_follower.hpp"
+#include "gps_waypoint_follower/gps_waypoint_follower.hpp"
 #include "nav2_waypoint_follower/waypoint_follower.hpp"
-#include "rclcpp/rclcpp.hpp"
 
 using FromLL = robot_localization::srv::FromLL;
 
