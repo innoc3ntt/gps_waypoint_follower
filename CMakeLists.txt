@@ -66,7 +66,7 @@ ament_target_dependencies(${library_name} ${dependencies} )
 
 
 install(
-  DIRECTORY launch params 
+  DIRECTORY launch 
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -85,7 +85,7 @@ install(DIRECTORY include/
   DESTINATION include/)
 
 install(
-  DIRECTORY launch params
+  DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 

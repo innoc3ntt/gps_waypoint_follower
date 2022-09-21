@@ -59,6 +59,7 @@ def generate_launch_description():
         namespace="",
         output="screen",
     )
+
     gps_lifecycle = Node(
         package="nav2_lifecycle_manager",
         executable="lifecycle_manager",

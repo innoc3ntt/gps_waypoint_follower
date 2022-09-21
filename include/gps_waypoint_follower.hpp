@@ -1,5 +1,5 @@
-#ifndef GPS_WAYPOINT_FOLLOWER__WAYPOINT_FOLLOWER_HPP_
-#define GPS_WAYPOINT_FOLLOWER__WAYPOINT_FOLLOWER_HPP_
+#ifndef GPS_WAYPOINT_FOLLOWER_HPP_
+#define GPS_WAYPOINT_FOLLOWER_HPP_
 
 #include "geographic_msgs/msg/geo_pose.hpp"
 #include "gps_interfaces/action/follow_gps_waypoints.hpp"
@@ -93,6 +93,7 @@ namespace gps_waypoint_follower
         std::vector<int> failed_ids_;
         int loop_rate_;
         bool stop_on_failure_;
+        //TODO remove hardcode on global frame id
         std::string global_frame_id_{"map"};
         std::vector<geometry_msgs::msg::PoseStamped>
         convertGPSPosesToMapPoses(const std::vector<geographic_msgs::msg::GeoPose> &gps_poses);
@@ -104,6 +105,6 @@ namespace gps_waypoint_follower
         std::string waypoint_task_executor_id_;
         std::string waypoint_task_executor_type_;
     };
-} // namespace gps_waypoint_foolower
+} // namespace gps_waypoint_follower
 
-#endif // WAYPOINT_FOLLOWER__WAYPOINT_FOLLOWER_HPP_
+#endif //GPS_WAYPOINT_FOLLOWER_HPP_

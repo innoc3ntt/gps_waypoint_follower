@@ -3,16 +3,9 @@
 #include <cinttypes>
 #include <memory>
 
-// #include "geographic_msgs/msg/geo_pose.hpp"
-// #include "nav2_util/service_client.hpp"
-// #include "rclcpp/rclcpp.hpp"
-// #include "robot_localization/srv/from_ll.hpp"
-// #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-
 #include "gps_waypoint_follower.hpp"
 namespace gps_waypoint_follower
 {
-    // auto node = rclcpp::Node::make_shared("gps_waypoint_follower");
     GPSWaypointFollower::GPSWaypointFollower() : nav2_util::LifecycleNode("gps_waypoint_follower", "", false),
                                                  waypoint_task_executor_loader_("nav2_waypoint_follower",
                                                                                 "nav2_core::WaypointTaskExecutor")
@@ -60,25 +53,7 @@ namespace gps_waypoint_follower
             get_node_waitables_interface(),
             "navigate_to_pose", callback_group_);
 
-        // std::shared_ptr<rclcpp::Node> test = rclcpp::Node::make_shared("diagnostics_node");
         from_ll_to_map_client_ = node->create_client<FromLL>("fromLL");
-        // auto test_node = rclcpp::Node::make_shared("test_node");
-        // nav2_util::ServiceClient<FromLL> from_ll_to_map_client_("fromLL", test_node);
-
-        // from_ll_to_map_client
-        // // TODO: creating service failed, cannot pass lifecycle node to serviceclient
-        // // from_ll_to_map_client_ = std::make_unique<nav2_ut
-        // from_ll_to_map_client_ = rclcpp_action::create_client<FromLL>(
-        //     get_node_base_interface(),
-        //     get_node_graph_interface(),
-        //     get_node_logging_interface(),
-        //     get_node_waitables_interface(),
-        //     "fromLL", std::bind(&GPSWaypointFollower::on_activate, this));
-
-        // from_ll_to_map_client_ = std::make_unique<
-        //     nav2_util::ServiceClient<robot_localization::srv::FromLL>>(
-        //     "/fromLL",
-        //     &node);
 
         gps_action_server_ = std::make_unique<ActionServerGPS>(
             get_node_base_interface(),
@@ -87,6 +62,25 @@ namespace gps_waypoint_follower
             get_node_waitables_interface(),
             "follow_gps_waypoints",
             std::bind(&GPSWaypointFollower::followGPSWaypointsCallback, this));
+
+        try
+        {
+            waypoint_task_executor_type_ = nav2_util::get_plugin_type_param(
+                this,
+                waypoint_task_executor_id_);
+            waypoint_task_executor_ = waypoint_task_executor_loader_.createUniqueInstance(
+                waypoint_task_executor_type_);
+            RCLCPP_INFO(
+                get_logger(), "Created waypoint_task_executor : %s of type %s",
+                waypoint_task_executor_id_.c_str(), waypoint_task_executor_type_.c_str());
+            waypoint_task_executor_->initialize(node, waypoint_task_executor_id_);
+        }
+        catch (const pluginlib::PluginlibException &ex)
+        {
+            RCLCPP_FATAL(
+                get_logger(),
+                "Failed to create waypoint_task_executor. Exception: %s", ex.what());
+        }
 
         return nav2_util::CallbackReturn::SUCCESS;
     }
@@ -134,7 +128,6 @@ namespace gps_waypoint_follower
     GPSWaypointFollower::convertGPS(geographic_msgs::msg::GeoPose gps_pose)
     {
         auto req = std::make_shared<FromLL::Request>();
-        // auto res = std::make_shared<FromLL::Response>();
 
         geometry_msgs::msg::PoseStamped curr_pose_map_frame;
 
@@ -144,23 +137,14 @@ namespace gps_waypoint_follower
 
         from_ll_to_map_client_->wait_for_service((std::chrono::seconds(1)));
 
-        // auto node = shared_from_this();
-        // res = from_ll_to_map_client_.invoke(req);
         auto res = from_ll_to_map_client_->async_send_request(req);
         auto result = res.get();
 
-        // auto node = shared_from_this();
-        // rclcpp::spin_until_future_complete(node, res);
-
         RCLCPP_INFO(get_logger(), "sending requiest res %f", res.get()->map_point.x);
-        // rclcpp::spin_until_future_complete(node, res);
         if (from_ll_to_map_client_->service_is_ready())
         {
             //     RCLCPP_INFO(get_logger(), "sending service request");
             //     auto res = from_ll_to_map_client_->async_send_request(req);
-            // }
-            // // if (rclcpp::spin_until_future_complete(test, res))
-            // {
             RCLCPP_INFO(get_logger(), "service is ready");
             RCLCPP_INFO(get_logger(), "map point y %f", res.get()->map_point.y);
         }
@@ -182,10 +166,6 @@ namespace gps_waypoint_follower
         // {
         //     RCLCPP_INFO(this->get_logger(), "Successssss %f", res->map_point.x);
 
-        //     curr_pose_map_frame.header.frame_id = "map";
-        //     curr_pose_map_frame.header.stamp = this->now();
-        //     curr_pose_map_frame.pose.position = res->map_point;
-        //     curr_pose_map_frame.pose.orientation = gps_pose.orientation;
         // }
 
         RCLCPP_INFO(get_logger(), "curr pose z%f", curr_pose_map_frame.pose.position.z);
