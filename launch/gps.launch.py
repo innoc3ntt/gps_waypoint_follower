@@ -1,4 +1,3 @@
-# Copyright (c) 2020 Fetullah Atas
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,18 +16,8 @@ from launch import LaunchDescription
 from launch_ros.actions import LifecycleNode
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch.actions import EmitEvent
-from launch.actions import RegisterEventHandler
-from launch_ros.events.lifecycle import ChangeState
-from launch_ros.events.lifecycle import matches_node_name
-from launch_ros.event_handlers import OnStateTransition
-from launch.actions import LogInfo
-from launch.events import matches_action
-from launch.event_handlers.on_shutdown import OnShutdown
-from launch_ros.substitutions import FindPackageShare
 
 
-import lifecycle_msgs.msg
 import os
 
 from launch_ros.actions import Node
@@ -37,6 +26,9 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # * Launch configurations
     use_sim_time = LaunchConfiguration("use_sim_time")
+    autostart = LaunchConfiguration("autostart")
+
+    lifecycle_nodes = ["gps_waypoint_follower"]
 
     # * Declares
     declare_use_sim_time_cmd = DeclareLaunchArgument(
@@ -67,8 +59,54 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"use_sim_time": use_sim_time},
-            {"autostart": True},
-            {"node_names": ["gps_waypoint_follower"]},
+            {"autostart": autostart},
+            {"node_names": lifecycle_nodes},
+        ],
+    )
+
+    # ! Robot localization nodes
+    pkg_share = get_package_share_directory(package="gps_waypoint_follower")
+    params = os.path.join(pkg_share, "params/ekf_gps_2.yaml")
+
+    start_navsat_transform_cmd = Node(
+        package="robot_localization",
+        executable="navsat_transform_node",
+        name="navsat_transform",
+        output="screen",
+        parameters=[params, {"use_sim_time": use_sim_time}],
+        remappings=[
+            ("imu", "imu/data"),
+            # ("gps/fix", "gps/fix"), # !!! for demo
+            ("gps/fix", "imu/nav_sat_fix"),
+            ("gps/filtered", "gps/filtered"),
+            ("odometry/gps", "odometry/gps"),
+            ("odometry/filtered", "odometry/global"),
+        ],
+    )
+
+    # Start robot localization using an Extended Kalman filter...map->odom transform
+    start_robot_localization_global_cmd = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_filter_node_map",
+        output="screen",
+        parameters=[params, {"use_sim_time": use_sim_time}],
+        remappings=[
+            ("odometry/filtered", "odometry/global"),
+            ("/set_pose", "/initialpose"),
+        ],
+    )
+
+    # Start robot localization using an Extended Kalman filter...odom->base_footprint transform
+    start_robot_localization_local_cmd = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_filter_node_odom",
+        output="screen",
+        parameters=[params, {"use_sim_time": use_sim_time}],
+        remappings=[
+            ("odometry/filtered", "odometry/local"),
+            ("/set_pose", "/initialpose"),
         ],
     )
 
@@ -81,4 +119,8 @@ def generate_launch_description():
 
     ld.add_action(driver_node)
     ld.add_action(gps_lifecycle)
+    ld.add(start_navsat_transform_cmd)
+    ld.add(start_robot_localization_global_cmd)
+    ld.add(start_robot_localization_local_cmd)
+
     return ld

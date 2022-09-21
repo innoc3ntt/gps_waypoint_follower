@@ -35,10 +35,6 @@ include_directories(
   include
 )
 
-
-
-
-
 set(executable_name gps_waypoint_follower)
 
 add_executable(${executable_name} src/main.cpp)
@@ -103,12 +99,12 @@ install(DIRECTORY include/
 )
 
 install(
-  DIRECTORY launch 
+  DIRECTORY launch
   DESTINATION lib/${PROJECT_NAME}
 )
 
 install(
-  DIRECTORY launch
+  DIRECTORY launch params
   DESTINATION share/${PROJECT_NAME}
 )
 
