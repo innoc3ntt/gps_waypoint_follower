@@ -47,7 +47,7 @@ namespace gps_waypoint_follower
             get_node_logging_interface(),
             get_node_waitables_interface(),
             "follow_gps_waypoints",
-            std::bind(&GPSWaypointFollower::followGPSWaypointsCallback, this));
+            std::bind(&GPSWaypointFollower::followGPSWaypointsCallback, this), false);
 
         return nav2_util::CallbackReturn::SUCCESS;
     }
@@ -153,15 +153,176 @@ namespace gps_waypoint_follower
 
     void GPSWaypointFollower::followGPSWaypointsCallback()
     {
+        // auto goal = gps_action_server_->get_current_goal();
+        // auto feedback = std::make_shared<ActionTGPS::Feedback>();
+        // auto result = std::make_shared<ActionTGPS::Result>();
+
+        // std::vector<geometry_msgs::msg::PoseStamped> poses;
+
+        // poses = convertGPSPosesToMapPoses(
+        //     gps_action_server_->get_current_goal()->gps_poses);
+
+        // if (!gps_action_server_ || !gps_action_server_->is_server_active())
+        // {
+        //     RCLCPP_DEBUG(get_logger(), "Action server inactive. Stopping.");
+        //     return;
+        // }
+
+        // RCLCPP_INFO(
+        //     get_logger(), "Received follow waypoint request with %i waypoints.",
+        //     static_cast<int>(poses.size()));
+
+        // if (poses.empty())
+        // {
+        //     RCLCPP_ERROR(
+        //         get_logger(),
+        //         "Empty vector of waypoints passed to waypoint following "
+        //         "action potentially due to conversation failure or empty request.");
+        //     gps_action_server_->terminate_current(result);
+        //     return;
+        // }
+
+        // rclcpp::WallRate r(loop_rate_);
+        // uint32_t goal_index = 0;
+        // bool new_goal = true;
+
+        // while (rclcpp::ok())
+        // {
+        //     // Check if asked to stop processing action
+        //     if (gps_action_server_->is_cancel_requested())
+        //     {
+        //         auto cancel_future = nav_to_pose_client_->async_cancel_all_goals();
+        //         rclcpp::spin_until_future_complete(client_node_, cancel_future);
+        //         // for result callback processing
+        //         rclcpp::spin_some(client_node_);
+        //         gps_action_server_->terminate_all();
+        //         return;
+        //     }
+
+        //     // Check if asked to process another action
+        //     if (gps_action_server_->is_preempt_requested())
+        //     {
+        //         RCLCPP_INFO(get_logger(), "Preempting the goal pose.");
+        //         goal = gps_action_server_->accept_pending_goal();
+        //         poses = convertGPSPosesToMapPoses(
+        //             gps_action_server_->get_current_goal()->gps_poses);
+
+        //         if (poses.empty())
+        //         {
+        //             RCLCPP_ERROR(
+        //                 get_logger(),
+        //                 "Empty vector of Waypoints passed to waypoint following logic. "
+        //                 "Nothing to execute, returning with failure!");
+        //             gps_action_server_->terminate_current(result);
+        //             return;
+        //         }
+        //         goal_index = 0;
+        //         new_goal = true;
+        //     }
+
+        //     // Check if we need to send a new goal
+        //     if (new_goal)
+        //     {
+        //         new_goal = false;
+        //         ClientT::Goal client_goal;
+        //         client_goal.pose = poses[goal_index];
+
+        //         auto send_goal_options = rclcpp_action::Client<ClientT>::SendGoalOptions();
+        //         send_goal_options.result_callback = std::bind(&GPSWaypointFollower::resultCallback, this, std::placeholders::_1);
+        //         send_goal_options.goal_response_callback = std::bind(&GPSWaypointFollower::goalResponseCallback, this, std::placeholders::_1);
+        //         future_goal_handle_ =
+        //             nav_to_pose_client_->async_send_goal(client_goal, send_goal_options);
+        //         current_goal_status_ = ActionStatus::PROCESSING;
+        //     }
+
+        //     feedback->current_waypoint = goal_index;
+        //     gps_action_server_->publish_feedback(feedback);
+
+        //     if (current_goal_status_ == ActionStatus::FAILED)
+        //     {
+        //         failed_ids_.push_back(goal_index);
+
+        //         if (stop_on_failure_)
+        //         {
+        //             RCLCPP_WARN(
+        //                 get_logger(), "Failed to process waypoint %i in waypoint "
+        //                               "list and stop on failure is enabled."
+        //                               " Terminating action.",
+        //                 goal_index);
+        //             result->missed_waypoints = failed_ids_;
+        //             gps_action_server_->terminate_current(result);
+        //             failed_ids_.clear();
+        //             return;
+        //         }
+        //         else
+        //         {
+        //             RCLCPP_INFO(
+        //                 get_logger(), "Failed to process waypoint %i,"
+        //                               " moving to next.",
+        //                 goal_index);
+        //         }
+        //     }
+        //     else if (current_goal_status_ == ActionStatus::SUCCEEDED)
+        //     {
+        //         RCLCPP_INFO(
+        //             get_logger(), "Succeeded processing waypoint %i",
+        //             goal_index);
+
+        //         if (stop_on_failure_)
+        //         {
+        //             failed_ids_.push_back(goal_index);
+        //             RCLCPP_WARN(
+        //                 get_logger(), "Failed to execute task at waypoint %i "
+        //                               " stop on failure is enabled."
+        //                               " Terminating action.",
+        //                 goal_index);
+        //             result->missed_waypoints = failed_ids_;
+        //             gps_action_server_->terminate_current(result);
+        //             failed_ids_.clear();
+        //             return;
+        //         }
+        //         else
+        //         {
+        //             RCLCPP_INFO(
+        //                 get_logger(), "Handled task execution on waypoint %i,"
+        //                               " moving to next.",
+        //                 goal_index);
+        //         }
+        //     }
+
+        //     if (current_goal_status_ != ActionStatus::PROCESSING &&
+        //         current_goal_status_ != ActionStatus::UNKNOWN)
+        //     {
+        //         // Update server state
+        //         goal_index++;
+        //         new_goal = true;
+        //         if (goal_index >= poses.size())
+        //         {
+        //             RCLCPP_INFO(
+        //                 get_logger(), "Completed all %zu waypoints requested.",
+        //                 poses.size());
+        //             result->missed_waypoints = failed_ids_;
+        //             gps_action_server_->succeeded_current(result);
+        //             failed_ids_.clear();
+        //             return;
+        //         }
+        //     }
+        //     else
+        //     {
+        //         RCLCPP_INFO_EXPRESSION(
+        //             get_logger(),
+        //             (static_cast<int>(now().seconds()) % 30 == 0),
+        //             "Processing waypoint %i...", goal_index);
+        //     }
+
+        //     rclcpp::spin_some(client_node_);
+        //     r.sleep();
+        // }
         auto goal = gps_action_server_->get_current_goal();
         auto feedback = std::make_shared<ActionTGPS::Feedback>();
         auto result = std::make_shared<ActionTGPS::Result>();
 
-        std::vector<geometry_msgs::msg::PoseStamped> poses;
-
-        poses = convertGPSPosesToMapPoses(
-            gps_action_server_->get_current_goal()->gps_poses);
-
+        // Check if request is valid
         if (!gps_action_server_ || !gps_action_server_->is_server_active())
         {
             RCLCPP_DEBUG(get_logger(), "Action server inactive. Stopping.");
@@ -170,17 +331,13 @@ namespace gps_waypoint_follower
 
         RCLCPP_INFO(
             get_logger(), "Received follow waypoint request with %i waypoints.",
-            static_cast<int>(poses.size()));
+            4);
 
-        if (poses.empty())
-        {
-            RCLCPP_ERROR(
-                get_logger(),
-                "Empty vector of waypoints passed to waypoint following "
-                "action potentially due to conversation failure or empty request.");
-            gps_action_server_->terminate_current(result);
-            return;
-        }
+        // if (goal->poses.size() == 0)
+        // {
+        //     gps_action_server_->succeeded_current(result);
+        //     return;
+        // }
 
         rclcpp::WallRate r(loop_rate_);
         uint32_t goal_index = 0;
@@ -194,7 +351,7 @@ namespace gps_waypoint_follower
                 auto cancel_future = nav_to_pose_client_->async_cancel_all_goals();
                 rclcpp::spin_until_future_complete(client_node_, cancel_future);
                 // for result callback processing
-                rclcpp::spin_some(client_node_);
+                spin_some(client_node_);
                 gps_action_server_->terminate_all();
                 return;
             }
@@ -204,18 +361,6 @@ namespace gps_waypoint_follower
             {
                 RCLCPP_INFO(get_logger(), "Preempting the goal pose.");
                 goal = gps_action_server_->accept_pending_goal();
-                poses = convertGPSPosesToMapPoses(
-                    gps_action_server_->get_current_goal()->gps_poses);
-
-                if (poses.empty())
-                {
-                    RCLCPP_ERROR(
-                        get_logger(),
-                        "Empty vector of Waypoints passed to waypoint following logic. "
-                        "Nothing to execute, returning with failure!");
-                    gps_action_server_->terminate_current(result);
-                    return;
-                }
                 goal_index = 0;
                 new_goal = true;
             }
@@ -225,11 +370,13 @@ namespace gps_waypoint_follower
             {
                 new_goal = false;
                 ClientT::Goal client_goal;
-                client_goal.pose = poses[goal_index];
+                // client_goal.pose = goal->poses[goal_index];
 
                 auto send_goal_options = rclcpp_action::Client<ClientT>::SendGoalOptions();
-                send_goal_options.result_callback = std::bind(&GPSWaypointFollower::resultCallback, this, std::placeholders::_1);
-                send_goal_options.goal_response_callback = std::bind(&GPSWaypointFollower::goalResponseCallback, this, std::placeholders::_1);
+                send_goal_options.result_callback =
+                    std::bind(&GPSWaypointFollower::resultCallback, this, std::placeholders::_1);
+                send_goal_options.goal_response_callback =
+                    std::bind(&GPSWaypointFollower::goalResponseCallback, this, std::placeholders::_1);
                 future_goal_handle_ =
                     nav_to_pose_client_->async_send_goal(client_goal, send_goal_options);
                 current_goal_status_ = ActionStatus::PROCESSING;
@@ -265,29 +412,9 @@ namespace gps_waypoint_follower
             else if (current_goal_status_ == ActionStatus::SUCCEEDED)
             {
                 RCLCPP_INFO(
-                    get_logger(), "Succeeded processing waypoint %i",
+                    get_logger(), "Succeeded processing waypoint %i, "
+                                  "moving to next.",
                     goal_index);
-
-                if (stop_on_failure_)
-                {
-                    failed_ids_.push_back(goal_index);
-                    RCLCPP_WARN(
-                        get_logger(), "Failed to execute task at waypoint %i "
-                                      " stop on failure is enabled."
-                                      " Terminating action.",
-                        goal_index);
-                    result->missed_waypoints = failed_ids_;
-                    gps_action_server_->terminate_current(result);
-                    failed_ids_.clear();
-                    return;
-                }
-                else
-                {
-                    RCLCPP_INFO(
-                        get_logger(), "Handled task execution on waypoint %i,"
-                                      " moving to next.",
-                        goal_index);
-                }
             }
 
             if (current_goal_status_ != ActionStatus::PROCESSING &&
@@ -296,11 +423,12 @@ namespace gps_waypoint_follower
                 // Update server state
                 goal_index++;
                 new_goal = true;
-                if (goal_index >= poses.size())
+                // if (goal_index >= goal->poses.size())
+                if (goal_index >= 2)
                 {
-                    RCLCPP_INFO(
-                        get_logger(), "Completed all %zu waypoints requested.",
-                        poses.size());
+                    // RCLCPP_INFO(
+                    //     get_logger(), "Completed all %i waypoints requested.",
+                    //     goal->poses.size());
                     result->missed_waypoints = failed_ids_;
                     gps_action_server_->succeeded_current(result);
                     failed_ids_.clear();

@@ -16,7 +16,7 @@ from launch import LaunchDescription
 from launch_ros.actions import LifecycleNode
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-
+from nav2_common.launch import RewrittenYaml
 
 import os
 
@@ -25,8 +25,15 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     # * Launch configurations
+
+    pkg_share = get_package_share_directory(package_name="gps_waypoint_follower")
+
     use_sim_time = LaunchConfiguration("use_sim_time")
     autostart = LaunchConfiguration("autostart")
+    default_bt_xml_filename = LaunchConfiguration("default_bt_xml_filename")
+    map_subscribe_transient_local = LaunchConfiguration("map_subscribe_transient_local")
+    params_file = LaunchConfiguration("params_file")
+    namespace = LaunchConfiguration("namespace")
 
     lifecycle_nodes = ["gps_waypoint_follower"]
 
@@ -43,6 +50,39 @@ def generate_launch_description():
         description="Automatically startup the nav2 stack",
     )
 
+    declare_bt_xml = DeclareLaunchArgument(
+        "default_bt_xml_filename",
+        default_value=os.path.join(
+            get_package_share_directory("nav2_bt_navigator"),
+            "behavior_trees",
+            "navigate_w_replanning_and_recovery.xml",
+        ),
+        description="Full path to the behavior tree xml file to use",
+    )
+
+    declare_params_file = DeclareLaunchArgument(
+        "params_file",
+        default_value=os.path.join(pkg_share, "params", "basic_params.yaml"),
+        description="Full path to the ROS2 parameters file to use",
+    )
+
+    declare_namespace = DeclareLaunchArgument(
+        "namespace", default_value="", description="Top-level namespace"
+    )
+
+    param_substitutions = {
+        "use_sim_time": use_sim_time,
+        "default_bt_xml_filename": default_bt_xml_filename,
+        "autostart": autostart,
+    }
+
+    configured_params = RewrittenYaml(
+        source_file=params_file,
+        root_key=namespace,
+        param_rewrites=param_substitutions,
+        convert_types=True,
+    )
+
     # * Nodes
     driver_node = LifecycleNode(
         package="gps_waypoint_follower",
@@ -50,6 +90,7 @@ def generate_launch_description():
         name="gps_waypoint_follower",
         namespace="",
         output="screen",
+        parameters=[configured_params],
     )
 
     gps_lifecycle = Node(
@@ -65,7 +106,7 @@ def generate_launch_description():
     )
 
     # ! Robot localization nodes
-    pkg_share = get_package_share_directory(package_name="gps_waypoint_follower")
+
     params = os.path.join(pkg_share, "params/ekf_gps_2.yaml")
 
     start_navsat_transform_cmd = Node(
@@ -75,8 +116,8 @@ def generate_launch_description():
         output="screen",
         parameters=[params, {"use_sim_time": use_sim_time}],
         remappings=[
-            ("imu", "imu/data"),
-            # ("gps/fix", "gps/fix"), # !!! for demo
+            # ("imu", "imu/data"), # !!! for bus
+            ("gps/fix", "gps/fix"),  # !!! for demo
             ("gps/fix", "imu/nav_sat_fix"),
             ("gps/filtered", "gps/filtered"),
             ("odometry/gps", "odometry/gps"),
@@ -116,6 +157,9 @@ def generate_launch_description():
 
     ld.add_action(declare_autostart_cmd)
     ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(declare_namespace)
+    ld.add_action(declare_bt_xml)
+    ld.add_action(declare_params_file)
 
     ld.add_action(driver_node)
     ld.add_action(gps_lifecycle)
