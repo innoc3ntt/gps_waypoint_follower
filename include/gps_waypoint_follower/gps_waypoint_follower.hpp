@@ -6,7 +6,6 @@
 
 #include "geographic_msgs/msg/geo_pose.hpp"
 #include "gps_interfaces/action/follow_gps_waypoints.hpp"
-#include "nav2_core/waypoint_task_executor.hpp"
 #include "nav2_msgs/action/follow_waypoints.hpp"
 #include "nav2_msgs/action/navigate_to_pose.hpp"
 #include "nav2_util/lifecycle_node.hpp"
@@ -66,6 +65,7 @@ namespace gps_waypoint_follower
         nav2_util::CallbackReturn on_shutdown(const rclcpp_lifecycle::State &state) override;
 
         //servers and clients
+        rclcpp::Node::SharedPtr client_node_;
         rclcpp::Client<FromLL>::SharedPtr from_ll_to_map_client_;
         std::unique_ptr<ActionServerGPS> gps_action_server_;
         ActionClient::SharedPtr nav_to_pose_client_;
@@ -77,7 +77,7 @@ namespace gps_waypoint_follower
         geometry_msgs::msg::PoseStamped convertGPS(geographic_msgs::msg::GeoPose gps_pose);
         void followGPSWaypointsCallback();
         void resultCallback(const rclcpp_action::ClientGoalHandle<ClientT>::WrappedResult &result);
-        void goalResponseCallback(const rclcpp_action::ClientGoalHandle<ClientT>::SharedPtr &goal);
+        void goalResponseCallback(std::shared_future<rclcpp_action::ClientGoalHandle<ClientT>::SharedPtr> future);
         std::vector<geometry_msgs::msg::PoseStamped>
         convertGPSPosesToMapPoses(const std::vector<geographic_msgs::msg::GeoPose> &gps_poses);
 
@@ -90,14 +90,6 @@ namespace gps_waypoint_follower
         int loop_rate_;
         bool stop_on_failure_;
         std::string global_frame_id_;
-
-        // waypoint plugins
-        pluginlib::ClassLoader<nav2_core::WaypointTaskExecutor>
-            waypoint_task_executor_loader_;
-        pluginlib::UniquePtr<nav2_core::WaypointTaskExecutor>
-            waypoint_task_executor_;
-        std::string waypoint_task_executor_id_;
-        std::string waypoint_task_executor_type_;
     };
 } // namespace gps_waypoint_follower
 

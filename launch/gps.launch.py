@@ -65,7 +65,7 @@ def generate_launch_description():
     )
 
     # ! Robot localization nodes
-    pkg_share = get_package_share_directory(package="gps_waypoint_follower")
+    pkg_share = get_package_share_directory(package_name="gps_waypoint_follower")
     params = os.path.join(pkg_share, "params/ekf_gps_2.yaml")
 
     start_navsat_transform_cmd = Node(
@@ -119,8 +119,8 @@ def generate_launch_description():
 
     ld.add_action(driver_node)
     ld.add_action(gps_lifecycle)
-    ld.add(start_navsat_transform_cmd)
-    ld.add(start_robot_localization_global_cmd)
-    ld.add(start_robot_localization_local_cmd)
+    ld.add_action(start_navsat_transform_cmd)
+    ld.add_action(start_robot_localization_global_cmd)
+    ld.add_action(start_robot_localization_local_cmd)
 
     return ld
