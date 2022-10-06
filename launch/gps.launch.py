@@ -91,6 +91,7 @@ def generate_launch_description():
         namespace="",
         output="screen",
         parameters=[configured_params],
+        arguments=["--ros-args", "--log-level", "debug"],
     )
 
     gps_lifecycle = Node(
@@ -161,10 +162,10 @@ def generate_launch_description():
     ld.add_action(declare_bt_xml)
     ld.add_action(declare_params_file)
 
-    ld.add_action(driver_node)
-    ld.add_action(gps_lifecycle)
     ld.add_action(start_navsat_transform_cmd)
     ld.add_action(start_robot_localization_global_cmd)
     ld.add_action(start_robot_localization_local_cmd)
+    ld.add_action(driver_node)
+    ld.add_action(gps_lifecycle)
 
     return ld
