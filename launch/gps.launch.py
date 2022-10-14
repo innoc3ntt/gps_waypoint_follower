@@ -90,7 +90,7 @@ def generate_launch_description():
         output="screen",
         parameters=[params, {"use_sim_time": use_sim_time}],
         remappings=[
-            # ("imu", "imu/data"), #!!! for bus
+            ("imu", "imu/data"),
             ("gps/fix", "gps/fix"),  # !!! for demo
             ("gps/fix", "imu/nav_sat_fix"),
             ("gps/filtered", "gps/filtered"),
