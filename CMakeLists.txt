@@ -35,13 +35,11 @@ include_directories(
   include
 )
 
-
-
-
-
 set(executable_name gps_waypoint_follower)
 
-add_executable(${executable_name} src/main.cpp)
+add_executable(${executable_name} 
+  src/main.cpp
+  )
 
 set(library_name ${executable_name}_core)
 
@@ -56,8 +54,8 @@ set(dependencies
   nav2_util
   nav2_lifecycle_manager
   nav_msgs
-  geographic_msgs
   nav2_msgs
+  geographic_msgs
   nav2_core      
   nav2_waypoint_follower
   tf2_ros
@@ -78,24 +76,29 @@ ament_target_dependencies(${library_name} ${dependencies})
 
 add_library(wait_at_waypoint SHARED plugins/wait_at_waypoint.cpp)
 ament_target_dependencies(wait_at_waypoint ${dependencies})
+target_compile_definitions(wait_at_waypoint PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 add_library(photo_at_waypoint SHARED plugins/photo_at_waypoint.cpp)
 ament_target_dependencies(photo_at_waypoint ${dependencies})
+target_compile_definitions(photo_at_waypoint PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 add_library(input_at_waypoint SHARED plugins/input_at_waypoint.cpp)
 ament_target_dependencies(input_at_waypoint ${dependencies})
 
+target_compile_definitions(input_at_waypoint PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+
+
 rclcpp_components_register_nodes(${library_name} 
   "gps_waypoint_follower::GPSWaypointFollower")
 
-install(TARGETS ${library_name}
+install(TARGETS ${library_name} wait_at_waypoint photo_at_waypoint input_at_waypoint
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
 
 install(TARGETS ${executable_name}
-  DESTINATION lib/${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY include/
@@ -112,17 +115,13 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(TARGETS ${executable_name}
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
-)
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
 
 ament_export_include_directories(include)
-ament_export_libraries(${library_name})
+ament_export_libraries(wait_at_waypoint photo_at_waypoint input_at_waypoint ${library_name})
 ament_export_dependencies(${dependencies})
 pluginlib_export_plugin_description_file(nav2_waypoint_follower plugins.xml)
 
