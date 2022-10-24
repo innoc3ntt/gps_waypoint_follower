@@ -25,11 +25,13 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     # * Launch configurations
-    pkg_share = get_package_share_directory("gps_waypoint_follower")
     use_sim_time = LaunchConfiguration("use_sim_time")
     autostart = LaunchConfiguration("autostart")
 
+    pkg_share = get_package_share_directory("gps_waypoint_follower")
+    params = os.path.join(pkg_share, "params/ekf_gps_2.yaml")
     map_yaml_file = os.path.join(pkg_share, "maps", "test.yaml")
+
     lifecycle_nodes = ["gps_waypoint_follower", "map_server"]
 
     # * Declares
@@ -80,8 +82,6 @@ def generate_launch_description():
     )
 
     # ! Robot localization nodes
-
-    params = os.path.join(pkg_share, "params/ekf_gps_2.yaml")
 
     start_navsat_transform_cmd = Node(
         package="robot_localization",
