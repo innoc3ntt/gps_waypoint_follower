@@ -111,7 +111,7 @@ install(
 )
 
 install(
-  DIRECTORY launch
+  DIRECTORY launch maps params
   DESTINATION share/${PROJECT_NAME}
 )
 
