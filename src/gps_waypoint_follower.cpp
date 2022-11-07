@@ -11,7 +11,7 @@ namespace gps_waypoint_follower
 
         this->declare_parameter("stop_on_failure", true);
         this->declare_parameter("loop_rate", 20);
-        this->declare_parameter("global_frame_id", global_frame_id_);
+        this->declare_parameter("global_frame_id", "map");
 
         nav2_util::declare_parameter_if_not_declared(
             this, std::string("waypoint_task_executor_plugin"),
@@ -138,7 +138,7 @@ namespace gps_waypoint_follower
         auto res = from_ll_to_map_client_->async_send_request(req);
         auto result = res.get();
 
-        RCLCPP_INFO(get_logger(), "sending requiest res %f", res.get()->map_point.x);
+        RCLCPP_INFO(get_logger(), "Sending Request res %f", result->map_point.x);
         if (from_ll_to_map_client_->service_is_ready())
         {
             //     RCLCPP_INFO(get_logger(), "sending service request");
