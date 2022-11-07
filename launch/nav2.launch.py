@@ -24,7 +24,7 @@ def generate_launch_description():
     nav2_launch_dir = os.path.join(nav2_dir, "launch")
     # static_map_path = os.path.join(pkg_share, "maps", "test.yaml")
     static_map_path = os.path.join(pkg_share, "maps", "ezoneguild.yaml")
-    nav2_params_path = os.path.join(pkg_share, "params", "nav2_params.yaml")
+    nav2_params_path = os.path.join(pkg_share, "params", "ekfs_bus.yaml")
 
     # Launch configuration variables specific to simulation
     autostart = LaunchConfiguration("autostart")
