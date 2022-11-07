@@ -30,14 +30,14 @@ def generate_launch_description():
 
     pkg_share = get_package_share_directory("gps_waypoint_follower")
 
-    params = os.path.join(pkg_share, "params/ekf_gps_2.yaml")
+    params = os.path.join(pkg_share, "params/ekf_gps_3.yaml")
 
     lifecycle_nodes = ["gps_waypoint_follower"]
 
     # * Declares
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         name="use_sim_time",
-        default_value="True",
+        default_value="False",
         description="Use simulation (Gazebo) clock if true",
     )
 
@@ -55,19 +55,6 @@ def generate_launch_description():
         namespace="",
         output="screen",
     )
-
-    # start_map_server_cmd = LifecycleNode(
-    #     package="nav2_map_server",
-    #     executable="map_server",
-    #     name="map_server",
-    #     namespace="",
-    #     output="screen",
-    #     parameters=[
-    #         {"use_sim_time": use_sim_time},
-    #         {"autostart": autostart},
-    #         {"yaml_filename": map_yaml_file},
-    #     ],
-    # )
 
     gps_lifecycle = Node(
         package="nav2_lifecycle_manager",
@@ -90,9 +77,9 @@ def generate_launch_description():
         output="screen",
         parameters=[params, {"use_sim_time": use_sim_time}],
         remappings=[
-            ("imu/data", "imu/data"),
-            ("gps/fix", "gps/fix"),  # !!! for demo
-            # ("gps/fix", "imu/nav_sat_fix"),
+            ("imu", "imu/data"),
+            # ("gps/fix", "gps/fix"),  # !!! for demo
+            ("gps/fix", "imu/nav_sat_fix"),
             ("gps/filtered", "gps/filtered"),
             ("odometry/gps", "odometry/gps"),
             ("odometry/filtered", "odometry/global"),
@@ -132,7 +119,6 @@ def generate_launch_description():
     ld.add_action(declare_autostart_cmd)
     ld.add_action(declare_use_sim_time_cmd)
 
-    # ld.add_action(start_map_server_cmd)
     ld.add_action(driver_node)
     ld.add_action(gps_lifecycle)
     ld.add_action(start_navsat_transform_cmd)
