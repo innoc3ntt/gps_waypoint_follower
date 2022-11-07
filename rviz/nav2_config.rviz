@@ -94,18 +94,12 @@ Visualization Manager:
           odom:
             base_footprint:
               base_link:
-                drivewhl_l_link:
-                  {}
-                drivewhl_r_link:
-                  {}
-                front_caster:
-                  {}
-                gps_link:
-                  {}
-                imu_link:
-                  {}
-                lidar_link:
-                  {}
+                drivewhl_l_link: {}
+                drivewhl_r_link: {}
+                front_caster: {}
+                gps_link: {}
+                imu_link: {}
+                lidar_link: {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -278,14 +272,28 @@ Visualization Manager:
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: MarkerArray
-      Namespaces:
-        {}
+      Namespaces: {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /waypoints
+      Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/PointStamped
+      Color: 204; 41; 204
+      Enabled: true
+      History Length: 1
+      Name: PointStamped
+      Radius: 0.20000000298023224
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /lookahead_point
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
