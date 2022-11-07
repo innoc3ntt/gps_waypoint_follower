@@ -13,7 +13,9 @@ ekf_filter_node_odom:
     world_frame: odom
     map_frame: map
 
-    odom0: odometry/gps    
+# ! subscribe to odom XOR imu, don't fuse data from same sensor
+
+    odom0: imu/odometry    
     odom0_config: [false,  false, false, # X , Y , Z
                     false, false, false, # roll , pitch ,yaw
                     true,  true,  true,  # dX , dY , dZ
@@ -23,16 +25,16 @@ ekf_filter_node_odom:
     odom0_differential: false
     odom0_queue_size: 10
 
-    imu0: imu/data        
-    imu0_config: [false,  false, false,  # X , Y , Z
-                  false,  false,  true,  # roll , pitch ,yaw
-                  false,  false, false,  # dX , dY , dZ
-                  false,  false,  true,  # droll , dpitch ,dyaw
-                  false,  false,  false] # ddX , ddY , ddZ
-    imu0_relative: false                
-    imu0_differential: true
-    imu0_queue_size: 10
-    imu0_remove_gravitational_acceleration: true
+    # imu0: imu/data        
+    # imu0_config: [false,  false, false,  # X , Y , Z
+    #               false,  false,  true,  # roll , pitch ,yaw
+    #               false,  false, false,  # dX , dY , dZ
+    #               false,  false,  true,  # droll , dpitch ,dyaw
+    #               false,  false,  false] # ddX , ddY , ddZ
+    # imu0_relative: false                
+    # imu0_differential: true
+    # imu0_queue_size: 10
+    # imu0_remove_gravitational_acceleration: true
 
     process_noise_covariance: [0.03, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                                 0.0,    0.03, 0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
@@ -65,6 +67,7 @@ ekf_filter_node_map:
     base_link_frame: base_link
     world_frame: map                 # we set world frame o map here, menaing that globl frmae will be map
 
+    # ! fuse GPS odometry * imu for pos in global frame
     # odom0: /wheel/odometry
     odom0: odometry/gps        
     odom0_config: [false,  false,  false, # X , Y , Z
