@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<robot name="nuway">
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/nuway.dae"/>
+            </geometry>
+            <origin xyz="0 0 0.25" rpy="0 0 1.57075"/>
+        </visual>
+    </link>
+
+    <!-- LiDARs -->
+    <link name="lidar_safety_front_left">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/sick-lms1xx.dae"/>
+            </geometry>
+            <origin rpy="3.14159 0 0"/>
+        </visual>
+    </link>
+    <link name="lidar_safety_front_right">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/sick-lms1xx.dae"/>
+            </geometry>
+            <origin rpy="3.14159 0 0"/>
+        </visual>
+    </link>
+    <link name="lidar_safety_rear_right">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/sick-lms1xx.dae"/>
+            </geometry>
+            <origin rpy="3.14159 0 0"/>
+        </visual>
+    </link>
+    <link name="lidar_safety_rear_left">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/sick-lms1xx.dae"/>
+            </geometry>
+            <origin rpy="3.14159 0 0"/>
+        </visual>
+    </link>
+
+    <link name="lidar_velodyne_front">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/vlp16-1.dae"/>
+            </geometry>
+        </visual>
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/vlp16-2.dae"/>
+            </geometry>
+        </visual>
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/vlp16-3.dae"/>
+            </geometry>
+        </visual>
+    </link>
+    <link name="lidar_velodyne_rear">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/vlp16-1.dae"/>
+            </geometry>
+        </visual>
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/vlp16-2.dae"/>
+            </geometry>
+        </visual>
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/vlp16-3.dae"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <link name="lidar_localisation_front">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/sick-ldmrs.dae"/>
+            </geometry>
+        </visual>
+    </link>
+    <link name="lidar_localisation_rear">
+        <visual>
+            <geometry>
+                <mesh filename="package://master/meshes/sick-ldmrs.dae"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="base_to_lidar_safety_front_left" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_safety_front_left"/>
+        <origin xyz="1.875 0.9125 0.25" rpy="3.14159 0 0.785398"/>
+    </joint>
+    <joint name="base_to_lidar_safety_front_right" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_safety_front_right"/>
+        <origin xyz="1.875 -0.9125 0.25" rpy="3.14159 0 5.49779"/>
+    </joint>
+    <joint name="base_to_lidar_safety_rear_right" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_safety_rear_right"/>
+        <origin xyz="-1.875 -0.9125 0.25" rpy="3.14159 0 3.92699"/>
+    </joint>
+    <joint name="base_to_lidar_safety_rear_left" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_safety_rear_left"/>
+        <origin xyz="-1.875 0.9125 0.25" rpy="3.14159 0 2.35619"/>
+    </joint>
+
+    <joint name="base_to_lidar_velodyne_front" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_velodyne_front"/>
+        <origin xyz="1.9 0 0.9" rpy="0 0.139626 0"/>
+    </joint>
+    <joint name="base_to_lidar_velodyne_rear" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_velodyne_rear"/>
+        <origin xyz="-1.9 0 0.9" rpy="0 0.139626 3.14159"/>
+    </joint>
+
+    <joint name="base_to_lidar_localisation_front" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_localisation_front"/>
+        <origin xyz="0 0 2.3"/>
+    </joint>
+    <joint name="base_to_lidar_localisation_rear" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_localisation_rear"/>
+        <origin xyz="-0.4 0 2.3" rpy="0 0 3.19395"/>
+    </joint>
+
+    <!-- Cameras -->
+    <link name="camera_front"/>
+    <link name="camera_rear"/>
+
+    <joint name="base_to_camera_front" type="fixed">
+        <parent link="base_link"/>
+        <child link="camera_front"/>
+        <origin xyz="1.45 0 2"/>
+    </joint>
+    <joint name="base_to_camera_rear" type="fixed">
+        <parent link="base_link"/>
+        <child link="camera_rear"/>
+        <origin xyz="-1.45 0 2" rpy="0 0 3.14159"/>
+    </joint>
+
+    <!-- GPS -->
+    <link name="gnss0"/>
+
+    <joint name="base_to_gnss" type="fixed">
+        <parent link="base_link"/>
+        <child link="gnss0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <!-- IMU + GNSS
+    <link name="xsens_imu0"/>
+
+    <joint name="base_to_xsens_imu0" type="fixed">
+        <parent link="base_link"/>
+        <child link="xsens_imu0"/>
+        <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    </joint>
+    
+    <link name="xsens_imu1"/>
+
+    <joint name="base_to_xsens_imu1" type="fixed">
+        <parent link="base_link"/>
+        <child link="xsens_imu1"/>
+        <origin xyz="0 0 0" rpy="0 0 -0.7854"/>
+    </joint> -->
+    
+    <!-- INS -->
+    <link name="ins0"/>
+
+    <joint name="base_to_ins0" type="fixed">
+        <parent link="base_link"/>
+        <child link="ins0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+</robot>

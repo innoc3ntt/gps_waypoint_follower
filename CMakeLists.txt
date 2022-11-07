@@ -111,7 +111,7 @@ install(
 )
 
 install(
-  DIRECTORY launch maps params
+  DIRECTORY launch maps params rviz meshes
   DESTINATION share/${PROJECT_NAME}
 )
 
