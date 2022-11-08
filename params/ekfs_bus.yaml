@@ -1,7 +1,6 @@
 # This is configuration for local pose estmation EKF node
 ekf_filter_node_odom:
   ros__parameters:
-    use_sim_time: false
     two_d_mode: true
     publish_tf: true
     filter_type: "ekf"
@@ -22,8 +21,9 @@ ekf_filter_node_odom:
                     false, false, false, # droll , dpitch ,dyaw
                     false, false, false] # ddX , ddY , ddZ
     odom0_relative: false
-    odom0_differential: false
+    odom0_differential: true
     odom0_queue_size: 10
+
 
     # imu0: imu/data        
     # imu0_config: [false,  false, false,  # X , Y , Z
@@ -54,24 +54,22 @@ ekf_filter_node_odom:
 # This is configuration for global pose estmation EKF node
 ekf_filter_node_map:
   ros__parameters:
-    use_sim_time: false
     two_d_mode: true
     publish_tf: true
     filter_type: "ekf"
     frequency: 25.0
     sensor_timeout: 0.1
-     # attention to this, this is coming from below node: navsat_transform_node
 
     map_frame: map
     odom_frame: odom
     base_link_frame: base_link
-    world_frame: map                 # we set world frame o map here, menaing that globl frmae will be map
+    world_frame: map                 # we set world frame to map here, menaing that globl frmae will be map
 
-    # ! fuse GPS odometry * imu for pos in global frame
+    # ! fuse GPS odometry XOR imu for pos in global frame and any additional odom sources. odom/gps generated from same source as imu/data
     # odom0: /wheel/odometry
     odom0: odometry/gps        
-    odom0_config: [false,  false,  false, # X , Y , Z
-                  false, false, false, # roll , pitch ,yaw
+    odom0_config: [true,  true,  false, # X , Y , Z
+                  false, false, true, # roll , pitch ,yaw
                   false, false, false, # dX , dY , dZ
                   false, false, false,  # droll , dpitch ,dyaw
                   false, false, false] # ddX , ddY , ddZ
@@ -79,16 +77,16 @@ ekf_filter_node_map:
     odom0_differential: false
     odom0_queue_size: 10
 
-    imu0: imu/data
-    imu0_config: [false,  false, false,  # X , Y , Z
-                  false,  false,  true,  # roll , pitch ,yaw
-                  false,  false, false,  # dX , dY , dZ
-                  false,  false,  true,  # droll , dpitch ,dyaw
-                  false,  false,  false] # ddX , ddY , ddZ
-    imu0_relative: false
-    imu0_differential: false
-    imu0_queue_size: 10
-    imu0_remove_gravitational_acceleration: true
+    # imu0: imu/data
+    # imu0_config: [false,  false, false,  # X , Y , Z
+    #               false,  false,  true,  # roll , pitch ,yaw
+    #               false,  false, false,  # dX , dY , dZ
+    #               false,  false,  true,  # droll , dpitch ,dyaw
+    #               false,  false,  false] # ddX , ddY , ddZ
+    # imu0_relative: false
+    # imu0_differential: false
+    # imu0_queue_size: 10
+    # imu0_remove_gravitational_acceleration: true
 
     use_control: false
 
@@ -119,5 +117,5 @@ navsat_transform_node:
     publish_filtered_gps: true
     use_odometry_yaw: true
     broadcast_cartesian_transform: true
-    # broadcast_cartesian_transform_as_parent_frame: true # this is required when we convert GPS waypoint to map frame
+    broadcast_cartesian_transform_as_parent_frame: true # this is required when we convert GPS waypoint to map frame
     wait_for_datum: false
