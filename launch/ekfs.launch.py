@@ -76,36 +76,6 @@ def generate_launch_description():
             ),
             Node(
                 package="robot_localization",
-                condition=IfCondition(PythonExpression(["not ", use_sim_time])),
-                executable="navsat_transform_node",
-                name="navsat_transform",
-                output="screen",
-                parameters=[configured_params],
-                remappings=[
-                    ("imu", "imu/data"),
-                    ("gps/fix", "imu/nav_sat_fix"),  # ! from sbg
-                    ("gps/filtered", "gps/filtered"),
-                    ("odometry/gps", "odometry/gps"),
-                    ("odometry/filtered", "odometry/global"),
-                ],
-            ),
-            Node(
-                package="robot_localization",
-                condition=IfCondition(use_sim_time),
-                executable="navsat_transform_node",
-                name="navsat_transform",
-                output="screen",
-                parameters=[configured_params],
-                remappings=[
-                    ("imu", "imu/data"),
-                    ("gps/fix", "gps/fix"),  # ! for demo
-                    ("gps/filtered", "gps/filtered"),
-                    ("odometry/gps", "odometry/gps"),
-                    ("odometry/filtered", "odometry/global"),
-                ],
-            ),
-            Node(
-                package="robot_localization",
                 executable="ekf_node",
                 name="ekf_filter_node_map",
                 output="screen",

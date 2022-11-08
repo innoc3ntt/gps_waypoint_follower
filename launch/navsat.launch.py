@@ -26,13 +26,10 @@ def generate_launch_description():
     pkg_share = get_package_share_directory("gps_waypoint_follower")
 
     use_sim_time = LaunchConfiguration("use_sim_time")
-    autostart = LaunchConfiguration("autostart")
     params = LaunchConfiguration("params")
-    lifecycle_nodes = ["gps_waypoint_follower"]
 
     param_substitutions = {
         "use_sim_time": use_sim_time,
-        "autostart": autostart,
     }
 
     configured_params = RewrittenYaml(
@@ -47,32 +44,9 @@ def generate_launch_description():
                 description="Use simulation (Gazebo) clock if true",
             ),
             DeclareLaunchArgument(
-                "autostart",
-                default_value="True",
-                description="Automatically startup gps node",
-            ),
-            DeclareLaunchArgument(
                 "params",
                 default_value=os.path.join(pkg_share, "params/ekfs_demo.yaml"),
                 description="",
-            ),
-            LifecycleNode(
-                package="gps_waypoint_follower",
-                executable="gps_waypoint_follower",
-                name="gps_waypoint_follower",
-                namespace="",
-                output="screen",
-            ),
-            Node(
-                package="nav2_lifecycle_manager",
-                executable="lifecycle_manager",
-                name="lifecycle_manager_gps_waypoint_follower",
-                output="screen",
-                parameters=[
-                    {"use_sim_time": use_sim_time},
-                    {"autostart": autostart},
-                    {"node_names": lifecycle_nodes},
-                ],
             ),
             Node(
                 package="robot_localization",
@@ -102,28 +76,6 @@ def generate_launch_description():
                     ("gps/filtered", "gps/filtered"),
                     ("odometry/gps", "odometry/gps"),
                     ("odometry/filtered", "odometry/global"),
-                ],
-            ),
-            Node(
-                package="robot_localization",
-                executable="ekf_node",
-                name="ekf_filter_node_map",
-                output="screen",
-                parameters=[configured_params],
-                remappings=[
-                    ("odometry/filtered", "odometry/global"),
-                    ("/set_pose", "/initialpose"),
-                ],
-            ),
-            Node(
-                package="robot_localization",
-                executable="ekf_node",
-                name="ekf_filter_node_odom",
-                output="screen",
-                parameters=[configured_params],
-                remappings=[
-                    ("odometry/filtered", "odometry/local"),
-                    ("/set_pose", "/initialpose"),
                 ],
             ),
         ]
