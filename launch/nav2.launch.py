@@ -10,6 +10,7 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
@@ -26,9 +27,13 @@ def generate_launch_description():
     use_namespace = LaunchConfiguration("use_namespace")
     use_rviz = LaunchConfiguration("use_rviz")
     use_sim_time = LaunchConfiguration("use_sim_time")
+    log_level = LaunchConfiguration("log_level")
 
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                "log_level", default_value="debug", description="Top-level namespace"
+            ),
             DeclareLaunchArgument(
                 name="namespace", default_value="", description="Top-level namespace"
             ),
@@ -44,7 +49,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 name="map",
-                default_value=os.path.join(pkg_share, "maps/ezoneguild.yaml"),
+                default_value=os.path.join(pkg_share, "maps/test.yaml"),
                 description="Full path to map file to load",
             ),
             DeclareLaunchArgument(
@@ -55,6 +60,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 name="rviz_config_file",
                 default_value=os.path.join(pkg_share, "rviz/nav2_config.rviz"),
+                # default_value=os.path.join(nav2_dir, "rviz/nav2_default_view.rviz"),
                 description="Full path to the RVIZ config file to use",
             ),
             DeclareLaunchArgument(
@@ -62,7 +68,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 name="use_rviz",
-                default_value="False",
+                default_value="True",
                 description="Whether to start RVIZ",
             ),
             DeclareLaunchArgument(
@@ -70,6 +76,35 @@ def generate_launch_description():
                 default_value="false",
                 description="Use simulation (Gazebo) clock if true",
             ),
+            Node(
+                package="rviz2",
+                executable="rviz2",
+                arguments=[
+                    "-d",
+                    rviz_config_file,
+                    # "--ros-args",
+                    # "--log-level",
+                    # "debug",
+                ],
+                output="screen",
+                # remappings=[
+                #     ("/tf", "tf"),
+                #     ("/tf_static", "tf_static"),
+                #     ("/goal_pose", "goal_pose"),
+                #     ("/clicked_point", "clicked_point"),
+                #     ("/initialpose", "initialpose"),
+                # ],
+            ),
+            # IncludeLaunchDescription(
+            #     PythonLaunchDescriptionSource(
+            #         os.path.join(nav2_dir, "launch/rviz_launch.py"),
+            #     ),
+            #     condition=IfCondition(use_rviz),
+            #     launch_arguments={
+            #         "namespace": namespace,
+            #         "rviz_config_file": rviz_config_file,
+            #     }.items(),
+            # ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(nav2_dir, "launch/bringup_launch.py")
@@ -78,20 +113,11 @@ def generate_launch_description():
                     "namespace": namespace,
                     "use_namespace": use_namespace,
                     "slam": slam,
-                    "map": map_yaml_file,  # ! only valid for localization launch in nav2 bringup
+                    "map": map_yaml_file,
                     "use_sim_time": use_sim_time,
                     "params_file": params_file,
                     "autostart": autostart,
-                }.items(),
-            ),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    os.path.join(nav2_dir, "launch/rviz_launch.py"),
-                ),
-                condition=IfCondition(use_rviz),
-                launch_arguments={
-                    "namespace": namespace,
-                    "rviz_config_file": rviz_config_file,
+                    "log_level": log_level,
                 }.items(),
             ),
         ]
