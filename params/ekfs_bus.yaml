@@ -5,36 +5,36 @@ ekf_filter_node_odom:
     publish_tf: true
     filter_type: "ekf"
     frequency: 25.0
-    sensor_timeout: 0.1
+    # sensor_timeout: 0.1
 
+    map_frame: map
     odom_frame: odom                        # odometry frame
     base_link_frame: base_link
     world_frame: odom
-    map_frame: map
 
 # ! subscribe to odom XOR imu, don't fuse data from same sensor
+# ! ENABLE THIS WHEN TESTING!!!!!
+    # odom0: imu/odometry    
+    # odom0_config: [false,  false, false, # X , Y , Z
+    #                 false, false, false, # roll , pitch ,yaw
+    #                 true,  true,  true,  # dX , dY , dZ
+    #                 false, false, false, # droll , dpitch ,dyaw
+    #                 false, false, false] # ddX , ddY , ddZ
+    # odom0_relative: false
+    # odom0_differential: true
+    # odom0_queue_size: 10
 
-    odom0: imu/odometry    
-    odom0_config: [false,  false, false, # X , Y , Z
-                    false, false, false, # roll , pitch ,yaw
-                    true,  true,  true,  # dX , dY , dZ
-                    false, false, false, # droll , dpitch ,dyaw
-                    false, false, false] # ddX , ddY , ddZ
-    odom0_relative: false
-    odom0_differential: true
-    odom0_queue_size: 10
 
-
-    # imu0: imu/data        
-    # imu0_config: [false,  false, false,  # X , Y , Z
-    #               false,  false,  true,  # roll , pitch ,yaw
-    #               false,  false, false,  # dX , dY , dZ
-    #               false,  false,  true,  # droll , dpitch ,dyaw
-    #               false,  false,  false] # ddX , ddY , ddZ
-    # imu0_relative: false                
-    # imu0_differential: true
-    # imu0_queue_size: 10
-    # imu0_remove_gravitational_acceleration: true
+    imu0: imu/data        
+    imu0_config: [false,  false, false,  # X , Y , Z
+                  false,  false,  true,  # roll , pitch ,yaw
+                  false,  false, false,  # dX , dY , dZ
+                  false,  false,  true,  # droll , dpitch ,dyaw
+                  false,  false,  false] # ddX , ddY , ddZ
+    imu0_relative: false                
+    imu0_differential: false
+    imu0_queue_size: 10
+    imu0_remove_gravitational_acceleration: true
 
     process_noise_covariance: [0.03, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                                 0.0,    0.03, 0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
@@ -58,12 +58,12 @@ ekf_filter_node_map:
     publish_tf: true
     filter_type: "ekf"
     frequency: 25.0
-    sensor_timeout: 0.1
+    # sensor_timeout: 0.1
 
     map_frame: map
     odom_frame: odom
     base_link_frame: base_link
-    world_frame: map                 # we set world frame to map here, menaing that globl frmae will be map
+    world_frame: map             
 
     # ! fuse GPS odometry XOR imu for pos in global frame and any additional odom sources. odom/gps generated from same source as imu/data
     # odom0: /wheel/odometry
@@ -77,16 +77,16 @@ ekf_filter_node_map:
     odom0_differential: false
     odom0_queue_size: 10
 
-    # imu0: imu/data
-    # imu0_config: [false,  false, false,  # X , Y , Z
-    #               false,  false,  true,  # roll , pitch ,yaw
-    #               false,  false, false,  # dX , dY , dZ
-    #               false,  false,  true,  # droll , dpitch ,dyaw
-    #               false,  false,  false] # ddX , ddY , ddZ
-    # imu0_relative: false
-    # imu0_differential: false
-    # imu0_queue_size: 10
-    # imu0_remove_gravitational_acceleration: true
+    imu0: imu/data
+    imu0_config: [false,  false, false,  # X , Y , Z
+                  false,  false,  true,  # roll , pitch ,yaw
+                  false,  false, false,  # dX , dY , dZ
+                  false,  false,  true,  # droll , dpitch ,dyaw
+                  false,  false,  false] # ddX , ddY , ddZ
+    imu0_relative: false
+    imu0_differential: false
+    imu0_queue_size: 10
+    imu0_remove_gravitational_acceleration: true
 
     use_control: false
 
@@ -108,7 +108,6 @@ ekf_filter_node_map:
 
 navsat_transform_node:
   ros__parameters:
-    use_sim_time: false
     frequency: 10.0
     delay: 2.0
     magnetic_declination_radians: 0.0   
@@ -117,5 +116,5 @@ navsat_transform_node:
     publish_filtered_gps: true
     use_odometry_yaw: true
     broadcast_cartesian_transform: true
-    broadcast_cartesian_transform_as_parent_frame: true # this is required when we convert GPS waypoint to map frame
+    # broadcast_cartesian_transform_as_parent_frame: true # this is required when we convert GPS waypoint to map frame
     wait_for_datum: false
