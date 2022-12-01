@@ -29,6 +29,7 @@ from nav2_common.launch import RewrittenYaml
 def generate_launch_description():
     # Get the launch directory
     bringup_dir = get_package_share_directory("nav2_bringup")
+    pkg_share = get_package_share_directory("gps_waypoint_follower")
 
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
@@ -41,13 +42,20 @@ def generate_launch_description():
 
     lifecycle_nodes = [
         "controller_server",
-        "smoother_server",
+        # "smoother_server",
         "planner_server",
         "behavior_server",
         "bt_navigator",
         "waypoint_follower",
-        "velocity_smoother",
+        # "velocity_smoother",
+        "map_server",
     ]
+
+    declare_map_cmd = DeclareLaunchArgument(
+        name="map",
+        default_value=os.path.join(pkg_share, "maps/test.yaml"),
+        description="Full path to map file to load",
+    )
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -83,7 +91,7 @@ def generate_launch_description():
 
     declare_params_file_cmd = DeclareLaunchArgument(
         "params_file",
-        default_value=os.path.join(bringup_dir, "params", "nav2_params.yaml"),
+        default_value=os.path.join(pkg_share, "params", "bus_nav2_params.yaml"),
         description="Full path to the ROS2 parameters file to use for all launched nodes",
     )
 
@@ -129,17 +137,17 @@ def generate_launch_description():
                 arguments=["--ros-args", "--log-level", log_level],
                 remappings=remappings + [("cmd_vel", "cmd_vel_nav")],
             ),
-            Node(
-                package="nav2_smoother",
-                executable="smoother_server",
-                name="smoother_server",
-                output="screen",
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                parameters=[configured_params],
-                arguments=["--ros-args", "--log-level", log_level],
-                remappings=remappings,
-            ),
+            # Node(
+            #     package="nav2_smoother",
+            #     executable="smoother_server",
+            #     name="smoother_server",
+            #     output="screen",
+            #     respawn=use_respawn,
+            #     respawn_delay=2.0,
+            #     parameters=[configured_params],
+            #     arguments=["--ros-args", "--log-level", log_level],
+            #     remappings=remappings,
+            # ),
             Node(
                 package="nav2_planner",
                 executable="planner_server",
@@ -152,14 +160,22 @@ def generate_launch_description():
                 remappings=remappings,
             ),
             Node(
-                package="nav2_behaviors",
-                executable="behavior_server",
-                name="behavior_server",
+                package="nav2_map_server",
+                executable="map_server",
+                name="map_server",
                 output="screen",
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
                 arguments=["--ros-args", "--log-level", log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package="nav2_recoveries",
+                executable="recoveries_server",
+                name="recoveries_server",
+                output="screen",
+                parameters=[configured_params],
                 remappings=remappings,
             ),
             Node(
@@ -184,18 +200,18 @@ def generate_launch_description():
                 arguments=["--ros-args", "--log-level", log_level],
                 remappings=remappings,
             ),
-            Node(
-                package="nav2_velocity_smoother",
-                executable="velocity_smoother",
-                name="velocity_smoother",
-                output="screen",
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                parameters=[configured_params],
-                arguments=["--ros-args", "--log-level", log_level],
-                remappings=remappings
-                + [("cmd_vel", "cmd_vel_nav"), ("cmd_vel_smoothed", "cmd_vel")],
-            ),
+            # Node(
+            #     package="nav2_velocity_smoother",
+            #     executable="velocity_smoother",
+            #     name="velocity_smoother",
+            #     output="screen",
+            #     respawn=use_respawn,
+            #     respawn_delay=2.0,
+            #     parameters=[configured_params],
+            #     arguments=["--ros-args", "--log-level", log_level],
+            #     remappings=remappings
+            #     + [("cmd_vel", "cmd_vel_nav"), ("cmd_vel_smoothed", "cmd_vel")],
+            # ),
             Node(
                 package="nav2_lifecycle_manager",
                 executable="lifecycle_manager",
@@ -283,6 +299,7 @@ def generate_launch_description():
     # Set environment variables
     ld.add_action(stdout_linebuf_envvar)
 
+    ld.add_action(declare_map_cmd)
     # Declare the launch options
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_use_sim_time_cmd)
