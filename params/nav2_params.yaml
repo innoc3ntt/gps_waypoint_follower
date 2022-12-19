@@ -238,7 +238,7 @@ global_costmap:
 
 map_server:
   ros__parameters:
-    yaml_filename: ""
+    yaml_filename: "/home/timothy/uwa_ws/src/gps_waypoint_follower/maps/test.yaml"
 
 map_saver:
   ros__parameters:

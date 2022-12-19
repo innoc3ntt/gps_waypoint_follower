@@ -53,7 +53,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "params",
-                default_value=os.path.join(pkg_share, "params/ekfs_demo.yaml"),
+                default_value=os.path.join(pkg_share, "params/ekfs_bus.yaml"),
                 description="",
             ),
             LifecycleNode(

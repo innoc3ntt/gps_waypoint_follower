@@ -32,7 +32,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "log_level", default_value="debug", description="Top-level namespace"
+                "log_level", default_value="info", description="log level for nodes"
             ),
             DeclareLaunchArgument(
                 name="namespace", default_value="", description="Top-level namespace"

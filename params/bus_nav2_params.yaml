@@ -228,7 +228,7 @@ global_costmap:
 
 map_server:
   ros__parameters:
-    yaml_filename: "test.yaml" #"ezoneguild.yaml" #"reidchild.yaml" # ezoneguild.yaml #"reidchild.yaml" #"result5.yaml" # ! gets overwritten by launch file
+    yaml_filename: "/home/timothy/uwa_ws/src/gps_waypoint_follower/maps/test.yaml" #"ezoneguild.yaml" #"reidchild.yaml" # ezoneguild.yaml #"reidchild.yaml" #"result5.yaml" # ! gets overwritten by launch file
 
 planner_server:
   ros__parameters:
