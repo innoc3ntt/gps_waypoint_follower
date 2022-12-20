@@ -1,124 +1,158 @@
-# Author: Addison Sears-Collins
-# Date: September 2, 2021
-# Description: Launch a basic mobile robot using the ROS 2 Navigation Stack
-# https://automaticaddison.com
+# Copyright (c) 2018 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import os
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+
 from ament_index_python.packages import get_package_share_directory
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
+    # Get the launch directory
+    bringup_dir = get_package_share_directory("gps_waypoint_follower")
 
-    nav2_dir = get_package_share_directory("nav2_bringup")
-    pkg_share = get_package_share_directory("gps_waypoint_follower")
-
-    autostart = LaunchConfiguration("autostart")
-    map_yaml_file = LaunchConfiguration("map")
     namespace = LaunchConfiguration("namespace")
-    params_file = LaunchConfiguration("params_file")
-    rviz_config_file = LaunchConfiguration("rviz_config_file")
-    slam = LaunchConfiguration("slam")
-    use_namespace = LaunchConfiguration("use_namespace")
-    use_rviz = LaunchConfiguration("use_rviz")
     use_sim_time = LaunchConfiguration("use_sim_time")
-    log_level = LaunchConfiguration("log_level")
+    autostart = LaunchConfiguration("autostart")
+    params_file = LaunchConfiguration("params_file")
+    use_respawn = LaunchConfiguration("respawn")
+
+    lifecycle_nodes = [
+        "controller_server",
+        "planner_server",
+        "recoveries_server",
+        "bt_navigator",
+        "waypoint_follower",
+        "map_server",
+    ]
+
+    # Map fully qualified names to relative ones so the node's namespace can be prepended.
+    # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
+    # https://github.com/ros/geometry2/issues/32
+    # https://github.com/ros/robot_state_publisher/pull/30
+    # TODO(orduno) Substitute with `PushNodeRemapping`
+    #              https://github.com/ros2/launch_ros/issues/56
+    remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
+
+    # Create our own temporary YAML files that include substitutions
+    param_substitutions = {"use_sim_time": use_sim_time, "autostart": autostart}
+
+    configured_params = RewrittenYaml(
+        source_file=params_file,
+        root_key=namespace,
+        param_rewrites=param_substitutions,
+        convert_types=True,
+    )
 
     return LaunchDescription(
         [
+            # Set env var to print messages to stdout immediately
+            SetEnvironmentVariable("RCUTILS_LOGGING_BUFFERED_STREAM", "1"),
             DeclareLaunchArgument(
-                "log_level", default_value="info", description="log level for nodes"
+                "namespace", default_value="", description="Top-level namespace"
             ),
             DeclareLaunchArgument(
-                name="namespace", default_value="", description="Top-level namespace"
-            ),
-            DeclareLaunchArgument(
-                name="use_namespace",
+                "use_sim_time",
                 default_value="false",
-                description="Whether to apply a namespace to the navigation stack",
+                description="Use simulation (Gazebo) clock if true",
             ),
             DeclareLaunchArgument(
-                name="autostart",
+                "autostart",
                 default_value="true",
                 description="Automatically startup the nav2 stack",
             ),
             DeclareLaunchArgument(
-                name="map",
-                default_value=os.path.join(pkg_share, "maps/test.yaml"),
-                description="Full path to map file to load",
+                "params_file",
+                default_value=os.path.join(
+                    bringup_dir, "params", "bus_nav2_params.yaml"
+                ),
+                description="Full path to the ROS2 parameters file to use",
             ),
             DeclareLaunchArgument(
-                name="params_file",
-                default_value=os.path.join(pkg_share, "params/bus_nav2_params.yaml"),
-                description="Full path to the ROS2 parameters file to use for all launched nodes",
-            ),
-            DeclareLaunchArgument(
-                name="rviz_config_file",
-                default_value=os.path.join(pkg_share, "rviz/nav2_config.rviz"),
-                # default_value=os.path.join(nav2_dir, "rviz/nav2_default_view.rviz"),
-                description="Full path to the RVIZ config file to use",
-            ),
-            DeclareLaunchArgument(
-                name="slam", default_value="False", description="Whether to run SLAM"
-            ),
-            DeclareLaunchArgument(
-                name="use_rviz",
+                "respawn",
                 default_value="True",
-                description="Whether to start RVIZ",
-            ),
-            DeclareLaunchArgument(
-                name="use_sim_time",
-                default_value="false",
-                description="Use simulation (Gazebo) clock if true",
+                description="Respawn node if failed",
             ),
             Node(
-                package="rviz2",
-                executable="rviz2",
-                arguments=[
-                    "-d",
-                    rviz_config_file,
-                    # "--ros-args",
-                    # "--log-level",
-                    # "debug",
-                ],
+                package="nav2_controller",
+                executable="controller_server",
                 output="screen",
-                # remappings=[
-                #     ("/tf", "tf"),
-                #     ("/tf_static", "tf_static"),
-                #     ("/goal_pose", "goal_pose"),
-                #     ("/clicked_point", "clicked_point"),
-                #     ("/initialpose", "initialpose"),
-                # ],
+                respawn=use_respawn,
+                parameters=[configured_params],
+                remappings=remappings,
             ),
-            # IncludeLaunchDescription(
-            #     PythonLaunchDescriptionSource(
-            #         os.path.join(nav2_dir, "launch/rviz_launch.py"),
-            #     ),
-            #     condition=IfCondition(use_rviz),
-            #     launch_arguments={
-            #         "namespace": namespace,
-            #         "rviz_config_file": rviz_config_file,
-            #     }.items(),
-            # ),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    os.path.join(nav2_dir, "launch/bringup_launch.py")
-                ),
-                launch_arguments={
-                    "namespace": namespace,
-                    "use_namespace": use_namespace,
-                    "slam": slam,
-                    "map": map_yaml_file,
-                    "use_sim_time": use_sim_time,
-                    "params_file": params_file,
-                    "autostart": autostart,
-                    "log_level": log_level,
-                }.items(),
+            Node(
+                package="nav2_planner",
+                executable="planner_server",
+                name="planner_server",
+                output="screen",
+                respawn=use_respawn,
+                parameters=[configured_params],
+                remappings=remappings,
+            ),
+            Node(
+                package="nav2_recoveries",
+                executable="recoveries_server",
+                name="recoveries_server",
+                output="screen",
+                respawn=use_respawn,
+                parameters=[configured_params],
+                remappings=remappings,
+            ),
+            Node(
+                package="nav2_bt_navigator",
+                executable="bt_navigator",
+                name="bt_navigator",
+                output="screen",
+                respawn=use_respawn,
+                parameters=[configured_params],
+                remappings=remappings,
+            ),
+            Node(
+                package="nav2_waypoint_follower",
+                executable="waypoint_follower",
+                name="waypoint_follower",
+                output="screen",
+                respawn=use_respawn,
+                parameters=[configured_params],
+                remappings=remappings,
+            ),
+            Node(
+                package="nav2_lifecycle_manager",
+                executable="lifecycle_manager",
+                name="lifecycle_manager_navigation",
+                output="screen",
+                respawn=use_respawn,
+                parameters=[
+                    {"use_sim_time": use_sim_time},
+                    {"autostart": autostart},
+                    {"node_names": lifecycle_nodes},
+                ],
+            ),
+            Node(
+                package="nav2_map_server",
+                executable="map_server",
+                name="map_server",
+                output="screen",
+                respawn=use_respawn,
+                parameters=[configured_params],
+                remappings=remappings,
             ),
         ]
     )

@@ -54,7 +54,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "params",
                 default_value=os.path.join(pkg_share, "params/ekfs_bus.yaml"),
-                description="",
+                description="Parameter file for RL nodes",
             ),
             LifecycleNode(
                 package="gps_waypoint_follower",
@@ -74,6 +74,7 @@ def generate_launch_description():
                     {"node_names": lifecycle_nodes},
                 ],
             ),
+            # ! for bus, if condition
             Node(
                 package="robot_localization",
                 condition=IfCondition(PythonExpression(["not ", use_sim_time])),
@@ -83,12 +84,13 @@ def generate_launch_description():
                 parameters=[configured_params],
                 remappings=[
                     ("imu", "imu/data"),
-                    ("gps/fix", "imu/nav_sat_fix"),  # ! from sbg
+                    ("gps/fix", "imu/nav_sat_fix"),
                     ("gps/filtered", "gps/filtered"),
                     ("odometry/gps", "odometry/gps"),
                     ("odometry/filtered", "odometry/global"),
                 ],
             ),
+            # ! for demo, if condition
             Node(
                 package="robot_localization",
                 condition=IfCondition(use_sim_time),
@@ -98,7 +100,7 @@ def generate_launch_description():
                 parameters=[configured_params],
                 remappings=[
                     ("imu", "imu/data"),
-                    ("gps/fix", "gps/fix"),  # ! for demo
+                    ("gps/fix", "gps/fix"),
                     ("gps/filtered", "gps/filtered"),
                     ("odometry/gps", "odometry/gps"),
                     ("odometry/filtered", "odometry/global"),
